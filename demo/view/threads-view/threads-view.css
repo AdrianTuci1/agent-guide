@@ -224,7 +224,8 @@
   opacity: 0.9;
 }
 
-/* Threads topbar button */
-.threads-btn {
-  font-weight: 600;
+.threads-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
 }

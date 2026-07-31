@@ -169,6 +169,7 @@ const settingsSidebar = new window.SettingsSidebar(
 const settingsContent = new window.SettingsContent(document.getElementById('settings-content'));
 
 const appEl = document.getElementById('app');
+const threadsBtn = document.querySelector('.threads-btn');
 
 document.querySelector('.sidebar-toggle').addEventListener('click', () => {
   appEl.classList.toggle('sidebar-collapsed');
@@ -178,7 +179,7 @@ document.querySelector('.settings-btn').addEventListener('click', () => {
   appEl.classList.add('settings-active');
 });
 
-document.querySelector('.threads-btn').addEventListener('click', () => showThreads());
+document.querySelector('.threads-btn').addEventListener('click', () => toggleThreads());
 
 document.addEventListener('rightsidebartoggle', () => rightSidebar.toggle());
 
@@ -263,6 +264,7 @@ function showChat() {
   document.getElementById('agents-view').classList.remove('active');
   document.getElementById('threads-view').classList.remove('active');
   selectedAgentId = null;
+  threadsBtn.classList.remove('active');
   rightSidebar.refresh();
 }
 
@@ -271,7 +273,19 @@ function showAgents() {
   document.getElementById('chat-view').classList.remove('active');
   document.getElementById('threads-view').classList.remove('active');
   selectedAgentId = null;
+  threadsBtn.classList.remove('active');
   rightSidebar.close();
+}
+
+function toggleThreads() {
+  const threadsActive = document.getElementById('threads-view').classList.contains('active');
+  if (threadsActive) {
+    showChat();
+    threadsBtn.classList.remove('active');
+  } else {
+    showThreads();
+    threadsBtn.classList.add('active');
+  }
 }
 
 function showThreads() {
