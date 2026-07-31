@@ -1,0 +1,92 @@
+/* Agents view - full content area */
+#agents-view {
+  padding: 32px 48px;
+  overflow-y: auto;
+}
+
+.agents-view-header,
+.agents-grid {
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.agents-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.agents-view-header h2 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #e4e6eb;
+}
+
+.agents-view-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #8b949e;
+}
+
+.add-agent-btn {
+  background: #21252e;
+  border: 1px solid #2a2e36;
+  color: #e4e6eb;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.add-agent-btn:hover {
+  background: #2a2e36;
+}
+
+.agents-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.agent-card {
+  background: #181b21;
+  border: 1px solid #2a2e36;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.agent-card:hover {
+  background: #21252e;
+  border-color: #3d4450;
+}
+
+.agent-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e4e6eb;
+  margin-bottom: 6px;
+}
+
+.agent-card-description {
+  font-size: 13px;
+  color: #8b949e;
+  line-height: 1.45;
+}
+
+/* Hide agents view by default; app.js toggles .active */
+.main-view {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.main-view.active {
+  display: flex;
+}

@@ -1,0 +1,145 @@
+/* Base shell and layout */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f1115;
+  color: #e4e6eb;
+  font-size: 14px;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#topbar {
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: #181b21;
+  border-bottom: 1px solid #2a2e36;
+}
+
+.topbar-btn {
+  background: #21252e;
+  border: 1px solid #2a2e36;
+  color: #e4e6eb;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  padding: 0;
+}
+
+.topbar-btn:hover {
+  background: #2a2e36;
+}
+
+#main-view {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+#settings-view {
+  flex: 1;
+  display: none;
+  min-height: 0;
+}
+
+#app.settings-active #topbar,
+#app.settings-active #main-view {
+  display: none;
+}
+
+#app.settings-active #settings-view {
+  display: flex;
+}
+
+#sidebar {
+  width: 260px;
+  border-right: 1px solid #2a2e36;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.2s;
+}
+
+#app.sidebar-collapsed #sidebar {
+  width: 0;
+  border-right: none;
+}
+
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Render mode indicator */
+#render-bar {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #1e222b;
+  border: 1px solid #2a2e36;
+  border-radius: 6px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+}
+
+#render-bar.active { opacity: 1; }
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8b949e;
+  animation: pulse 1.4s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Global button */
+.btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.btn:hover { opacity: 0.9; }
+
+.btn.secondary {
+  background: #21252e;
+  border: 1px solid #2a2e36;
+}

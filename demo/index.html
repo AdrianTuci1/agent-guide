@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Guide Demo</title>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="view/sidebar/sidebar.css">
+  <link rel="stylesheet" href="view/agents-view/agents-view.css">
+  <link rel="stylesheet" href="view/right-sidebar/right-sidebar.css">
+  <link rel="stylesheet" href="view/chat-window/chat-window.css">
+  <link rel="stylesheet" href="view/chat-window/chat/chat.css">
+  <link rel="stylesheet" href="view/chat-window/composer/composer.css">
+  <link rel="stylesheet" href="settings/settings-sidebar/settings-sidebar.css">
+  <link rel="stylesheet" href="settings/settings-content/settings-content.css">
+</head>
+<body>
+  <div id="render-bar"><span class="dot"></span><span id="render-label">idle</span></div>
+
+  <div id="app">
+    <header id="topbar">
+      <button class="topbar-btn sidebar-toggle" title="Toggle sidebar">☰</button>
+      <button class="topbar-btn settings-btn" title="Settings">⚙</button>
+    </header>
+    <div id="main-view">
+      <aside id="sidebar"></aside>
+      <main id="main">
+        <div id="chat-view" class="main-view active"></div>
+        <div id="agents-view" class="main-view"></div>
+      </main>
+      <aside id="right-sidebar"></aside>
+    </div>
+    <div id="settings-view">
+      <aside id="settings-sidebar"></aside>
+      <main id="settings-content"></main>
+    </div>
+  </div>
+
+  <script src="view/chat-window/chat/chat.js"></script>
+  <script src="view/chat-window/composer/composer.js"></script>
+  <script src="view/agents-view/agents-view.js"></script>
+  <script src="view/chat-window/chat-window.js"></script>
+  <script src="view/right-sidebar/right-sidebar.js"></script>
+  <script src="view/sidebar/sidebar.js"></script>
+  <script src="settings/settings-sidebar/settings-sidebar.js"></script>
+  <script src="settings/settings-content/settings-content.js"></script>
+  <script src="mock-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

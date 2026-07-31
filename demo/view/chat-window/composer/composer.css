@@ -1,0 +1,157 @@
+/* Composer cards and default input */
+#composer {
+  padding: 16px 32px;
+  flex-shrink: 0;
+}
+
+.inline-composer {
+  width: 100%;
+  margin: 8px 0 16px 0;
+}
+
+.composer-card {
+  border: 1px solid #2a2e36;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.composer-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Topbar with title and actions */
+.composer-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.composer-topbar h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.composer-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.composer-body {
+  display: block;
+}
+
+/* Multi-variant card */
+.variant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.variant-btn {
+  text-align: left;
+  background: #21252e;
+  border: 1px solid #2a2e36;
+  color: #e4e6eb;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.variant-btn:hover {
+  background: #2a2e36;
+}
+
+/* Secrets card */
+.secret-field {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.secret-field input {
+  flex: 1;
+  background: #0f1115;
+  border: 1px solid #2a2e36;
+  color: #e4e6eb;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.secret-scope {
+  font-size: 12px;
+  color: #8b949e;
+  margin-top: 8px;
+}
+
+/* Form card */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.form-row label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.form-row input,
+.form-row select {
+  background: #0f1115;
+  border: 1px solid #2a2e36;
+  color: #e4e6eb;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+/* Composer actions */
+.composer-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Default floating input */
+.default-input {
+  width: 100%;
+  background: #0f1115;
+  border: 1px solid #2a2e36;
+  border-radius: 24px;
+  padding: 4px 6px 4px 18px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.default-input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #e4e6eb;
+  padding: 10px 0;
+  font-size: 14px;
+  outline: none;
+}
+
+#main.empty .default-input {
+  background: #181b21;
+  border-radius: 28px;
+  padding: 6px 8px 6px 22px;
+}
+
+#main.empty .default-input input {
+  font-size: 16px;
+  padding: 14px 0;
+}

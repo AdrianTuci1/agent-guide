@@ -1,0 +1,6 @@
+#settings-content {
+  flex: 1;
+  padding: 24px;
+  background: #0f1115;
+  overflow-y: auto;
+}

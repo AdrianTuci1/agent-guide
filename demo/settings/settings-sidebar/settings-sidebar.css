@@ -1,0 +1,22 @@
+#settings-sidebar {
+  width: 260px;
+  border-right: 1px solid #2a2e36;
+  background: #181b21;
+  padding: 16px;
+  flex-shrink: 0;
+}
+
+.settings-back {
+  background: #21252e;
+  border: 1px solid #2a2e36;
+  color: #e4e6eb;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.settings-back:hover {
+  background: #2a2e36;
+}
