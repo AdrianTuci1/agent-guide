@@ -36,17 +36,43 @@ const threadsData = {
   channels: [
     { id: 'general', name: 'general' },
     { id: 'releases', name: 'releases' },
-    { id: 'code-review', name: 'code-review' }
+    { id: 'code-review', name: 'code-review' },
+    { id: 'flight-path', name: 'flight-path' }
   ],
   messagesByChannel: {
     general: [
-      { id: 1, text: 'Welcome to the team channel.', author: 'Adrian', time: '09:00', tag: '#question' },
-      { id: 2, text: 'What are we building today?', author: 'You', time: '09:05' }
+      { id: 1, text: 'Welcome to the team channel.', author: 'Adrian', time: '09:00', reactions: [{ emoji: '👋', count: 2 }] },
+      { id: 2, text: 'What are we building today?', author: 'You', time: '09:05', replyTo: 1, reactions: [{ emoji: '💬', count: 1 }] }
     ],
     releases: [
-      { id: 3, text: 'v1.2 is scheduled for Friday.', author: 'Release bot', time: '08:30', tag: '#release' }
+      { id: 3, text: 'v1.2 is scheduled for Friday.', author: 'Release bot', time: '08:30', tag: '#release', reactions: [{ emoji: '🚀', count: 1 }] }
     ],
-    'code-review': []
+    'code-review': [],
+    'flight-path': [
+      { id: 101, text: 'Perfect. That\'s the move.', author: 'Adrian', time: '3:24 PM', reactions: [{ emoji: '✅', count: 1 }] },
+      { id: 102, text: 'Small thing: the desktop-to-mobile handoff still feels a little fast.', author: 'Maya Chen', time: '3:25 PM', reactions: [{ emoji: '👀', count: 1 }] },
+      { id: 103, text: 'Yeah — I want one extra beat on the sent message.', author: 'Jordan Brooks', time: '3:25 PM', reactions: [] },
+      { id: 104, text: 'That would give the camera somewhere to land too.', author: 'Camille Dubois', time: '3:25 PM', reactions: [] },
+      { id: 105, text: 'Fizz can you turn that into a clean three-beat capture plan?', author: 'Maya Chen', time: '3:25 PM', reactions: [{ emoji: '👀', count: 1 }, { emoji: '💬', count: 1 }] },
+      { id: 106, text: `Absolutely — clean three-beat capture plan:
+1. Desktop compose
+   • Start on the project view.
+   • One clean cursor move into the update field.
+   • Type the short update without rushing.
+2. Project header settle
+   • After the transition, hold on the project header for a half beat.
+   • Let the context change become legible before moving on.
+   • Keep motion quick, but not slippery.
+3. Mobile handoff / sent message
+   • Cut to mobile.
+   • Let the sent message land and hold one extra beat.
+   • This gives the camera a clear final resting point and makes the handoff feel intentional.
+
+Tiny rule of thumb: cursor moves once, transition breathes once, sent state lands once. Nice and buzzy 🐝✨
+@honey over to you for the final capture pass.`, author: 'Fizz', time: '3:26 PM', reactions: [{ emoji: '👀', count: 1 }, { emoji: '💬', count: 1 }] },
+      { id: 107, text: 'Looks great, thanks!', author: 'Honey', time: '3:27 PM', replyTo: 106, reactions: [] },
+      { id: 108, text: '+1 on the extra beat.', author: 'Maya Chen', time: '3:28 PM', replyTo: 106, reactions: [] }
+    ]
   },
   tags: ['#bug', '#feature', '#question', '#release']
 };

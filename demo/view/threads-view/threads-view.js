@@ -22,17 +22,17 @@ window.ThreadsSidebar = class ThreadsSidebar {
 
   render() {
     this.el.innerHTML = `
-      <div class="threads-sidebar-header">
+      <div class='threads-sidebar-header'>
         <h3>Channels</h3>
       </div>
-      <div class="threads-channel-list"></div>
+      <div class='threads-channel-list'></div>
     `;
     const list = this.el.querySelector('.threads-channel-list');
     this.channels.forEach(channel => {
       const item = document.createElement('div');
       item.className = 'channel-item' + (channel.id === this.currentChannelId ? ' active' : '');
       item.dataset.id = channel.id;
-      item.innerHTML = `<span class="channel-hash">#</span><span class="channel-name">${channel.name}</span>`;
+      item.innerHTML = `<span class='channel-hash'>#</span><span class='channel-name'>${channel.name}</span>`;
       item.addEventListener('click', () => this.select(channel.id));
       list.appendChild(item);
     });
@@ -45,6 +45,7 @@ window.ThreadsView = class ThreadsView {
     this.channels = data.channels || [];
     this.messagesByChannel = data.messagesByChannel || {};
     this.tags = data.tags || ['#bug', '#feature', '#question', '#release'];
+    this.reactionEmojis = ['👀', '💬', '🎉', '👍', '🔥'];
     this.currentChannelId = this.channels[0]?.id || null;
     this.replyTo = null;
     this.currentTag = '';
@@ -53,42 +54,59 @@ window.ThreadsView = class ThreadsView {
 
   render() {
     this.el.innerHTML = `
-      <div class="threads-sidebar"></div>
-      <div class="threads-main">
-        <div class="threads-header"></div>
-        <div class="threads-messages"></div>
-        <div class="threads-composer">
-          <div class="composer-context hidden"></div>
-          <div class="composer-row">
-            <select class="composer-tag">
-              <option value="">Tag</option>
-              ${this.tags.map(tag => `<option value="${tag}">${tag}</option>`).join('')}
-            </select>
-            <input type="text" class="composer-input" placeholder="Message #${this.currentChannelName()}" />
-            <button class="composer-send">Send</button>
+      <div class='threads-view'>
+        <div class='threads-sidebar'></div>
+        <div class='threads-main'>
+          <div class='threads-header'>
+            <div class='header-left'>
+              <span class='header-hash'>#</span>
+              <span class='header-title'></span>
+            </div>
+            <div class='header-right'>
+              <button class='header-action members-btn' title='Members'>👤</button>
+              <button class='header-action call-btn' title='Call'>🎧</button>
+            </div>
+          </div>
+          <div class='threads-messages'></div>
+          <div class='threads-composer'>
+            <div class='composer-context hidden'></div>
+            <input type='text' class='composer-input' placeholder='Message #${this.currentChannelName()}' />
+            <div class='composer-toolbar'>
+              <div class='toolbar-left'>
+                <button class='toolbar-btn mention-btn' title='Mention'>@</button>
+                <button class='toolbar-btn attach-btn' title='Attach'>📎</button>
+                <button class='toolbar-btn emoji-btn' title='Emoji'>☺</button>
+                <button class='toolbar-btn tag-btn' title='Tag'>#</button>
+                <button class='toolbar-btn format-btn' title='Format'>Aa</button>
+              </div>
+              <button class='composer-send' title='Send'>↑</button>
+            </div>
           </div>
         </div>
       </div>
     `;
 
     this.sidebarEl = this.el.querySelector('.threads-sidebar');
-    this.headerEl = this.el.querySelector('.threads-header');
+    this.headerTitleEl = this.el.querySelector('.header-title');
     this.messagesEl = this.el.querySelector('.threads-messages');
     this.contextEl = this.el.querySelector('.composer-context');
     this.inputEl = this.el.querySelector('.composer-input');
-    this.tagEl = this.el.querySelector('.composer-tag');
+    this.tagBtn = this.el.querySelector('.tag-btn');
     this.sendBtn = this.el.querySelector('.composer-send');
 
     this.sidebar = new window.ThreadsSidebar(this.sidebarEl, this.channels, id => this.selectChannel(id));
-
-    this.tagEl.addEventListener('change', () => {
-      this.currentTag = this.tagEl.value;
-    });
 
     this.sendBtn.addEventListener('click', () => this.send());
     this.inputEl.addEventListener('keydown', e => {
       if (e.key === 'Enter') this.send();
     });
+
+    this.tagBtn.addEventListener('click', () => this.cycleComposerTag());
+
+    this.el.querySelector('.mention-btn').addEventListener('click', () => this.insertAtCursor('@'));
+    this.el.querySelector('.attach-btn').addEventListener('click', () => this.insertAtCursor('📎 '));
+    this.el.querySelector('.emoji-btn').addEventListener('click', () => this.insertAtCursor('☺ '));
+    this.el.querySelector('.format-btn').addEventListener('click', () => this.insertAtCursor('**'));
 
     this.renderMain();
   }
@@ -104,41 +122,65 @@ window.ThreadsView = class ThreadsView {
   }
 
   renderMain() {
-    this.headerEl.textContent = `#${this.currentChannelName()}`;
-    this.inputEl.placeholder = `Message #${this.currentChannelName()}`;
+    const name = this.currentChannelName();
+    this.headerTitleEl.textContent = name;
+    this.inputEl.placeholder = 'Message #' + name;
     this.renderMessages();
     this.renderContext();
+    this.updateTagButton();
   }
 
   renderMessages() {
     this.messagesEl.innerHTML = '';
     const messages = this.messagesByChannel[this.currentChannelId] || [];
     if (messages.length === 0) {
-      this.messagesEl.innerHTML = '<div class="threads-empty">No messages yet</div>';
+      this.messagesEl.innerHTML = '<div class=\'threads-empty\'>No messages yet</div>';
       return;
     }
-    messages.forEach(msg => {
+    messages.forEach((msg, idx) => {
+      const prev = messages[idx - 1];
+      const isGrouped = prev && prev.author === msg.author;
+      const replyCount = messages.filter(m => m.replyTo === msg.id).length;
       const el = document.createElement('div');
-      el.className = 'threads-message';
+      el.className = 'threads-message' + (isGrouped ? ' grouped' : '');
       el.dataset.id = msg.id;
-      el.innerHTML = `
-        <div class="threads-message-header">
-          <span class="threads-message-author">${msg.author}</span>
-          <span class="threads-message-time">${msg.time}</span>
-          ${msg.tag ? `<span class="threads-message-tag">${msg.tag}</span>` : ''}
+      const avatarHtml = isGrouped ? '<div class=\'threads-message-avatar placeholder\'></div>' : this._avatarHtml(msg.author);
+      const headerHtml = isGrouped ? '' : `
+        <div class='threads-message-header'>
+          <span class='threads-message-author'>${this._escapeHtml(msg.author)}</span>
+          <span class='threads-message-time'>${this._escapeHtml(msg.time)}</span>
         </div>
-        <div class="threads-message-body">${this._escapeHtml(msg.text)}</div>
-        ${msg.replyTo ? `<div class="threads-message-reply">↳ replying to ${this._replyLabel(msg.replyTo)}</div>` : ''}
-        <div class="threads-message-actions">
-          <button class="threads-action reply-btn">Reply</button>
-          <select class="threads-action tag-btn">
-            <option value="">Tag</option>
-            ${this.tags.map(tag => `<option value="${tag}" ${msg.tag === tag ? 'selected' : ''}>${tag}</option>`).join('')}
-          </select>
+      `;
+      const replyToHtml = msg.replyTo ? `<div class='threads-message-reply'>↳ replying to ${this._escapeHtml(this._replyLabel(msg.replyTo))}</div>` : '';
+      const reactionsHtml = (msg.reactions || []).map(r => `<button class='reaction' data-emoji='${r.emoji}'>${r.emoji} ${r.count}</button>`).join('');
+      const tagHtml = msg.tag ? `<span class='message-tag'>${this._escapeHtml(msg.tag)}</span>` : '';
+      const replyBadgeHtml = replyCount ? `<button class='reply-badge' data-reply-id='${msg.id}'>💬 ${replyCount}</button>` : '';
+      el.innerHTML = `
+        ${avatarHtml}
+        <div class='threads-message-content'>
+          ${headerHtml}
+          <div class='threads-message-body'>${this._escapeHtml(msg.text)}</div>
+          ${replyToHtml}
+          <div class='threads-message-footer'>
+            <button class='msg-action reply-btn'>Reply</button>
+            <button class='msg-action tag-btn'>Tag</button>
+            <button class='msg-action react-btn'>React</button>
+            ${tagHtml}
+            ${reactionsHtml}
+            ${replyBadgeHtml}
+          </div>
         </div>
       `;
       el.querySelector('.reply-btn').addEventListener('click', () => this.replyToMessage(msg.id));
-      el.querySelector('.tag-btn').addEventListener('change', e => this.tagMessage(msg.id, e.target.value));
+      el.querySelector('.tag-btn').addEventListener('click', () => this.cycleMessageTag(msg.id));
+      el.querySelector('.react-btn').addEventListener('click', () => this.addReaction(msg.id, '👀'));
+      el.querySelectorAll('.reaction').forEach(btn => {
+        btn.addEventListener('click', () => this.addReaction(msg.id, btn.dataset.emoji));
+      });
+      const replyBadge = el.querySelector('.reply-badge');
+      if (replyBadge) {
+        replyBadge.addEventListener('click', () => this.replyToMessage(msg.id));
+      }
       this.messagesEl.appendChild(el);
     });
   }
@@ -147,15 +189,6 @@ window.ThreadsView = class ThreadsView {
     this.replyTo = id;
     this.renderContext();
     this.inputEl.focus();
-  }
-
-  tagMessage(id, tag) {
-    const messages = this.messagesByChannel[this.currentChannelId] || [];
-    const msg = messages.find(m => m.id === id);
-    if (msg) {
-      msg.tag = tag;
-      this.renderMessages();
-    }
   }
 
   renderContext() {
@@ -168,13 +201,50 @@ window.ThreadsView = class ThreadsView {
     const msg = messages.find(m => m.id === this.replyTo);
     this.contextEl.classList.remove('hidden');
     this.contextEl.innerHTML = `
-      <span>↳ Replying to ${msg ? msg.author : 'message'}</span>
-      <button class="cancel-reply">×</button>
+      <span>↳ Replying to ${msg ? this._escapeHtml(msg.author) : 'message'}</span>
+      <button class='cancel-reply'>×</button>
     `;
     this.contextEl.querySelector('.cancel-reply').addEventListener('click', () => {
       this.replyTo = null;
       this.renderContext();
     });
+  }
+
+  cycleComposerTag() {
+    const currentIndex = this.tags.indexOf(this.currentTag);
+    const nextIndex = (currentIndex + 1) % (this.tags.length + 1);
+    this.currentTag = nextIndex === this.tags.length ? '' : this.tags[nextIndex];
+    this.updateTagButton();
+  }
+
+  updateTagButton() {
+    this.tagBtn.textContent = this.currentTag || '#';
+    this.tagBtn.classList.toggle('active', !!this.currentTag);
+    this.tagBtn.title = this.currentTag ? 'Tag: ' + this.currentTag : 'Tag';
+  }
+
+  cycleMessageTag(id) {
+    const messages = this.messagesByChannel[this.currentChannelId] || [];
+    const msg = messages.find(m => m.id === id);
+    if (!msg) return;
+    const currentIndex = this.tags.indexOf(msg.tag || '');
+    const nextIndex = (currentIndex + 1) % (this.tags.length + 1);
+    msg.tag = nextIndex === this.tags.length ? '' : this.tags[nextIndex];
+    this.renderMessages();
+  }
+
+  addReaction(id, emoji) {
+    const messages = this.messagesByChannel[this.currentChannelId] || [];
+    const msg = messages.find(m => m.id === id);
+    if (!msg) return;
+    if (!msg.reactions) msg.reactions = [];
+    const existing = msg.reactions.find(r => r.emoji === emoji);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      msg.reactions.push({ emoji, count: 1 });
+    }
+    this.renderMessages();
   }
 
   send() {
@@ -187,21 +257,53 @@ window.ThreadsView = class ThreadsView {
       author: 'You',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       replyTo: this.replyTo,
-      tag: this.currentTag
+      tag: this.currentTag,
+      reactions: []
     };
     messages.push(newMsg);
     this.messagesByChannel[this.currentChannelId] = messages;
     this.inputEl.value = '';
     this.replyTo = null;
     this.currentTag = '';
-    this.tagEl.value = '';
+    this.updateTagButton();
     this.renderMain();
+  }
+
+  insertAtCursor(text) {
+    this.inputEl.value += text;
+    this.inputEl.focus();
   }
 
   _replyLabel(id) {
     const messages = this.messagesByChannel[this.currentChannelId] || [];
     const msg = messages.find(m => m.id === id);
-    return msg ? `${msg.author}` : 'message';
+    return msg ? msg.author : 'message';
+  }
+
+  _avatarHtml(author) {
+    const color = this._avatarColor(author);
+    const initials = author.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    return `<div class='threads-message-avatar' style='background:${color}' title='${this._escapeHtml(author)}'>${initials}</div>`;
+  }
+
+  _avatarColor(author) {
+    const colors = {
+      'Adrian': '#2563eb',
+      'You': '#22c55e',
+      'Release bot': '#9ca3af',
+      'Maya Chen': '#ec4899',
+      'Jordan Brooks': '#8b5cf6',
+      'Camille Dubois': '#f97316',
+      'Fizz': '#10b981',
+      'Honey': '#ef4444'
+    };
+    if (colors[author]) return colors[author];
+    let hash = 0;
+    for (let i = 0; i < author.length; i++) {
+      hash = author.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return 'hsl(' + hue + ', 60%, 45%)';
   }
 
   _escapeHtml(str) {
