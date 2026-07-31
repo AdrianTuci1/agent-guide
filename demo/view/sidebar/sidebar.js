@@ -1,7 +1,8 @@
 window.Sidebar = class Sidebar {
-  constructor(el, conversations, onSelect, onNewChat, onOpenAgents) {
+  constructor(el, activeConversations, pastConversations, onSelect, onNewChat, onOpenAgents) {
     this.el = el;
-    this.conversations = conversations;
+    this.activeConversations = activeConversations;
+    this.pastConversations = pastConversations;
     this.onSelect = onSelect;
     this.onNewChat = onNewChat;
     this.onOpenAgents = onOpenAgents;
@@ -14,8 +15,14 @@ window.Sidebar = class Sidebar {
       <div class="sidebar-expanded-content">
         <button class="new-chat-btn">+ New chat</button>
         <button class="agents-btn">🤖 Agents</button>
-        <h3>Conversations</h3>
-        <div class="conversation-list"></div>
+        <div class="sidebar-section active-section">
+          <h3>Active</h3>
+          <div class="active-list conversation-list"></div>
+        </div>
+        <div class="sidebar-section past-section">
+          <h3>Past</h3>
+          <div class="past-list conversation-list"></div>
+        </div>
       </div>
       <div class="sidebar-collapsed-content">
         <button class="collapsed-btn new-chat-collapsed" title="New chat">+</button>
@@ -28,19 +35,34 @@ window.Sidebar = class Sidebar {
     this.el.querySelector('.new-chat-collapsed').addEventListener('click', () => this.onNewChat?.());
     this.el.querySelector('.agents-collapsed').addEventListener('click', () => this.onOpenAgents?.());
 
-    this.renderConversations();
+    this.renderLists();
   }
 
-  renderConversations() {
-    const list = this.el.querySelector('.conversation-list');
-    list.innerHTML = '';
-    this.conversations.forEach(conv => {
+  renderLists() {
+    this.renderList(this.activeConversations, this.el.querySelector('.active-list'));
+    this.renderList(this.pastConversations, this.el.querySelector('.past-list'));
+  }
+
+  refresh() {
+    this.renderLists();
+  }
+
+  renderList(conversations, listEl) {
+    listEl.innerHTML = '';
+    if (conversations.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'conversation-empty';
+      empty.textContent = 'None';
+      listEl.appendChild(empty);
+      return;
+    }
+    conversations.forEach(conv => {
       const item = document.createElement('div');
-      item.className = 'conversation-item';
+      item.className = 'conversation-item' + (conv.id === this.activeId ? ' active' : '');
       item.textContent = conv.title;
       item.dataset.id = conv.id;
       item.addEventListener('click', () => this.select(conv.id));
-      list.appendChild(item);
+      listEl.appendChild(item);
     });
   }
 

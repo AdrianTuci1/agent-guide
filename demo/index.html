@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="base.css">
   <link rel="stylesheet" href="view/sidebar/sidebar.css">
   <link rel="stylesheet" href="view/agents-view/agents-view.css">
+  <link rel="stylesheet" href="view/threads-view/threads-view.css">
   <link rel="stylesheet" href="view/right-sidebar/right-sidebar.css">
   <link rel="stylesheet" href="view/chat-window/chat-window.css">
   <link rel="stylesheet" href="view/chat-window/chat/chat.css">
@@ -20,6 +21,7 @@
   <div id="app">
     <header id="topbar">
       <button class="topbar-btn sidebar-toggle" title="Toggle sidebar">☰</button>
+      <button class="topbar-btn threads-btn" title="Threads">#</button>
       <button class="topbar-btn settings-btn" title="Settings">⚙</button>
     </header>
     <div id="main-view">
@@ -27,6 +29,7 @@
       <main id="main">
         <div id="chat-view" class="main-view active"></div>
         <div id="agents-view" class="main-view"></div>
+        <div id="threads-view" class="main-view"></div>
       </main>
       <aside id="right-sidebar"></aside>
     </div>
@@ -41,6 +44,7 @@
   <script src="view/agents-view/agents-view.js"></script>
   <script src="view/chat-window/chat-window.js"></script>
   <script src="view/right-sidebar/right-sidebar.js"></script>
+  <script src="view/threads-view/threads-view.js"></script>
   <script src="view/sidebar/sidebar.js"></script>
   <script src="settings/settings-sidebar/settings-sidebar.js"></script>
   <script src="settings/settings-content/settings-content.js"></script>

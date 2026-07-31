@@ -32,6 +32,34 @@ const agentsView = new window.AgentsView(
   id => openAgentInfo(id)
 );
 
+const threadsData = {
+  channels: [
+    { id: 'general', name: 'general' },
+    { id: 'releases', name: 'releases' },
+    { id: 'code-review', name: 'code-review' }
+  ],
+  messagesByChannel: {
+    general: [
+      { id: 1, text: 'Welcome to the team channel.', author: 'Adrian', time: '09:00', tag: '#question' },
+      { id: 2, text: 'What are we building today?', author: 'You', time: '09:05' }
+    ],
+    releases: [
+      { id: 3, text: 'v1.2 is scheduled for Friday.', author: 'Release bot', time: '08:30', tag: '#release' }
+    ],
+    'code-review': []
+  },
+  tags: ['#bug', '#feature', '#question', '#release']
+};
+
+const threadsView = new window.ThreadsView(
+  document.getElementById('threads-view'),
+  threadsData
+);
+
+let activeConversations = [];
+let pastConversations = [...conversations];
+let currentConversationId = null;
+
 let ws = null;
 let wsReady = false;
 
@@ -125,10 +153,11 @@ function handleServerEvent(data) {
 
 const sidebar = new window.Sidebar(
   document.getElementById('sidebar'),
-  conversations,
-  id => { showChat(); loadFlow(id); },
+  activeConversations,
+  pastConversations,
+  id => loadFlow(id),
   () => { showChat(); newChat(); },
-  () => { showAgents(); }
+  () => showAgents()
 );
 
 const settingsSidebar = new window.SettingsSidebar(
@@ -149,6 +178,8 @@ document.querySelector('.settings-btn').addEventListener('click', () => {
   appEl.classList.add('settings-active');
 });
 
+document.querySelector('.threads-btn').addEventListener('click', () => showThreads());
+
 document.addEventListener('rightsidebartoggle', () => rightSidebar.toggle());
 
 function archiveExecution() {
@@ -162,8 +193,44 @@ function archiveExecution() {
   });
 }
 
+function moveToActive(id) {
+  if (currentConversationId === id) return;
+  if (currentConversationId) {
+    moveToPast(currentConversationId);
+  }
+  const pastIndex = pastConversations.findIndex(c => c.id === id);
+  if (pastIndex !== -1) {
+    activeConversations.push(pastConversations[pastIndex]);
+    pastConversations.splice(pastIndex, 1);
+  }
+  if (!activeConversations.find(c => c.id === id)) {
+    const conv = conversations.find(c => c.id === id);
+    if (conv) activeConversations.push(conv);
+  }
+  currentConversationId = id;
+  sidebar.activeId = id;
+  sidebar.refresh();
+}
+
+function moveToPast(id) {
+  const activeIndex = activeConversations.findIndex(c => c.id === id);
+  if (activeIndex !== -1) {
+    activeConversations.splice(activeIndex, 1);
+  }
+  if (!pastConversations.find(c => c.id === id)) {
+    const conv = conversations.find(c => c.id === id);
+    if (conv) pastConversations.push(conv);
+  }
+  if (currentConversationId === id) {
+    currentConversationId = null;
+  }
+  sidebar.refresh();
+}
+
 function loadFlow(id) {
   archiveExecution();
+  moveToActive(id);
+  showChat();
   chatWindow.clear();
   chatWindow.setEmpty(false);
   selectedAgentId = null;
@@ -180,6 +247,9 @@ function loadFlow(id) {
 
 function newChat() {
   archiveExecution();
+  if (currentConversationId) {
+    moveToPast(currentConversationId);
+  }
   chatWindow.clear();
   chatWindow.setEmpty(true);
   chatWindow.composer.setDefault(msg => sendToBackend(msg));
@@ -191,6 +261,7 @@ function newChat() {
 function showChat() {
   document.getElementById('chat-view').classList.add('active');
   document.getElementById('agents-view').classList.remove('active');
+  document.getElementById('threads-view').classList.remove('active');
   selectedAgentId = null;
   rightSidebar.refresh();
 }
@@ -198,8 +269,17 @@ function showChat() {
 function showAgents() {
   document.getElementById('agents-view').classList.add('active');
   document.getElementById('chat-view').classList.remove('active');
+  document.getElementById('threads-view').classList.remove('active');
   selectedAgentId = null;
-  rightSidebar.refresh();
+  rightSidebar.close();
+}
+
+function showThreads() {
+  document.getElementById('threads-view').classList.add('active');
+  document.getElementById('chat-view').classList.remove('active');
+  document.getElementById('agents-view').classList.remove('active');
+  selectedAgentId = null;
+  rightSidebar.close();
 }
 
 function openAgentInfo(id) {
