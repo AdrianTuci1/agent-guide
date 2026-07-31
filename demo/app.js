@@ -45,79 +45,79 @@ const agentsView = new window.AgentsView(
 
 const threadsData = {
   workspaces: [
-    { id: 'acme', name: 'Acme', color: '#2563eb' },
-    { id: 'personal', name: 'Personal', color: '#10b981' },
-    { id: 'clients', name: 'Clients', color: '#f97316' }
-  ],
-  channels: [
-    { id: 'demo', name: 'Demo Channel', private: false, unread: 2, total: 6 },
-    { id: 'devdigest', name: 'DevDigest', private: false, unread: 0 },
-    { id: 'general', name: 'general', private: false, unread: 0 },
-    { id: 'welcome', name: 'Welcome', private: true, unread: 0 },
-    { id: 'welcome-everyone', name: 'welcome-everyone', private: false, unread: 0 }
-  ],
-  directMessages: [
-    { id: 'adrian', name: 'Adrian', online: true, unread: 1 },
-    { id: 'release-bot', name: 'Release bot', online: false, unread: 0 },
-    { id: 'maya', name: 'Maya Chen', online: true, unread: 1 }
-  ],
-  projects: [
     {
-      id: 'website',
-      name: 'Website',
-      groups: [
+      id: 'acme',
+      name: 'Acme',
+      color: '#2563eb',
+      channels: [
+        { id: 'demo', name: 'Demo Channel', private: false, unread: 2, total: 6 },
+        { id: 'devdigest', name: 'DevDigest', private: false, unread: 0 },
+        { id: 'general', name: 'general', private: false, unread: 0 },
+        { id: 'welcome', name: 'Welcome', private: true, unread: 0 },
+        { id: 'welcome-everyone', name: 'welcome-everyone', private: false, unread: 0 }
+      ],
+      directMessages: [
+        { id: 'adrian', name: 'Adrian', online: true, unread: 1 },
+        { id: 'release-bot', name: 'Release bot', online: false, unread: 0 },
+        { id: 'maya', name: 'Maya Chen', online: true, unread: 1 }
+      ],
+      projects: [
         {
-          name: 'Engineering',
-          channels: [
-            { id: 'website-frontend', name: 'frontend', private: false, unread: 0 },
-            { id: 'website-backend', name: 'backend', private: true, unread: 0 },
-            { id: 'website-flight', name: 'flight-path', private: false, unread: 0 },
-            { id: 'website-releases', name: 'releases', private: false, unread: 0 },
-            { id: 'website-code-review', name: 'code-review', private: false, unread: 0 }
-          ]
-        },
-        {
-          name: 'Design',
-          channels: [
-            { id: 'website-ui', name: 'ui', private: false, unread: 0 }
+          id: 'website',
+          name: 'Website',
+          groups: [
+            {
+              name: 'Engineering',
+              channels: [
+                { id: 'website-frontend', name: 'frontend', private: false, unread: 0 },
+                { id: 'website-backend', name: 'backend', private: true, unread: 0 },
+                { id: 'website-flight', name: 'flight-path', private: false, unread: 0 },
+                { id: 'website-releases', name: 'releases', private: false, unread: 0 },
+                { id: 'website-code-review', name: 'code-review', private: false, unread: 0 }
+              ]
+            },
+            {
+              name: 'Design',
+              channels: [
+                { id: 'website-ui', name: 'ui', private: false, unread: 0 }
+              ]
+            }
           ]
         }
-      ]
-    }
-  ],
-  messagesByChannel: {
-    demo: [
-      { id: 1, text: 'This is the demo channel for today\'s walkthrough.', author: 'Adrian', time: '09:00', reactions: [{ emoji: '👋', count: 2 }] },
-      { id: 2, text: '@You can you lead the demo?', author: 'Maya Chen', time: '09:05', reactions: [{ emoji: '💬', count: 1 }] }
-    ],
-    devdigest: [
-      { id: 3, text: 'Latest digest: AI codegen tips.', author: 'Release bot', time: '08:00', tag: '#feature', reactions: [{ emoji: '🚀', count: 1 }] },
-      { id: 4, text: 'Thanks, very useful.', author: 'You', time: '08:15', replyTo: 3, reactions: [{ emoji: '👍', count: 1 }] }
-    ],
-    general: [
-      { id: 5, text: 'Welcome to the team channel.', author: 'Adrian', time: '09:00', reactions: [{ emoji: '👋', count: 2 }] },
-      { id: 6, text: 'What are we building today?', author: 'You', time: '09:05', replyTo: 5, reactions: [{ emoji: '💬', count: 1 }] },
-      { id: 7, text: '@You check the latest build status.', author: 'Adrian', time: '09:10', reactions: [] },
-      { id: 8, text: 'Will do, thanks for the heads up.', author: 'You', time: '09:12', replyTo: 6, reactions: [{ emoji: '👍', count: 1 }] }
-    ],
-    welcome: [
-      { id: 9, text: 'Welcome to the team!', author: 'Adrian', time: '08:00', reactions: [{ emoji: '🎉', count: 1 }] }
-    ],
-    'welcome-everyone': [],
-    'website-frontend': [
-      { id: 1001, text: 'Initial setup is done.', author: 'Adrian', time: '11:00', reactions: [{ emoji: '👍', count: 1 }] },
-      { id: 1002, text: '@You can you check the layout?', author: 'Maya Chen', time: '11:05', reactions: [] }
-    ],
-    'website-backend': [
-      { id: 1003, text: 'API contract is ready for review.', author: 'Fizz', time: '11:30', reactions: [] }
-    ],
-    'website-flight': [
-      { id: 101, text: 'Perfect. That\'s the move.', author: 'Adrian', time: '3:24 PM', reactions: [{ emoji: '✅', count: 1 }] },
-      { id: 102, text: 'Small thing: the desktop-to-mobile handoff still feels a little fast.', author: 'Maya Chen', time: '3:25 PM', reactions: [{ emoji: '👀', count: 1 }] },
-      { id: 103, text: 'Yeah — I want one extra beat on the sent message.', author: 'Jordan Brooks', time: '3:25 PM', reactions: [] },
-      { id: 104, text: 'That would give the camera somewhere to land too.', author: 'Camille Dubois', time: '3:25 PM', reactions: [] },
-      { id: 105, text: 'Fizz can you turn that into a clean three-beat capture plan?', author: 'Maya Chen', time: '3:25 PM', reactions: [{ emoji: '👀', count: 1 }, { emoji: '💬', count: 1 }] },
-      { id: 106, text: `Absolutely — clean three-beat capture plan:
+      ],
+      messagesByChannel: {
+        demo: [
+          { id: 1, text: 'This is the demo channel for today\'s walkthrough.', author: 'Adrian', time: '09:00', reactions: [{ emoji: '👋', count: 2 }] },
+          { id: 2, text: '@You can you lead the demo?', author: 'Maya Chen', time: '09:05', reactions: [{ emoji: '💬', count: 1 }] }
+        ],
+        devdigest: [
+          { id: 3, text: 'Latest digest: AI codegen tips.', author: 'Release bot', time: '08:00', tag: '#feature', reactions: [{ emoji: '🚀', count: 1 }] },
+          { id: 4, text: 'Thanks, very useful.', author: 'You', time: '08:15', replyTo: 3, reactions: [{ emoji: '👍', count: 1 }] }
+        ],
+        general: [
+          { id: 5, text: 'Welcome to the team channel.', author: 'Adrian', time: '09:00', reactions: [{ emoji: '👋', count: 2 }] },
+          { id: 6, text: 'What are we building today?', author: 'You', time: '09:05', replyTo: 5, reactions: [{ emoji: '💬', count: 1 }] },
+          { id: 7, text: '@You check the latest build status.', author: 'Adrian', time: '09:10', reactions: [] },
+          { id: 8, text: 'Will do, thanks for the heads up.', author: 'You', time: '09:12', replyTo: 6, reactions: [{ emoji: '👍', count: 1 }] }
+        ],
+        welcome: [
+          { id: 9, text: 'Welcome to the team!', author: 'Adrian', time: '08:00', reactions: [{ emoji: '🎉', count: 1 }] }
+        ],
+        'welcome-everyone': [],
+        'website-frontend': [
+          { id: 1001, text: 'Initial setup is done.', author: 'Adrian', time: '11:00', reactions: [{ emoji: '👍', count: 1 }] },
+          { id: 1002, text: '@You can you check the layout?', author: 'Maya Chen', time: '11:05', reactions: [] }
+        ],
+        'website-backend': [
+          { id: 1003, text: 'API contract is ready for review.', author: 'Fizz', time: '11:30', reactions: [] }
+        ],
+        'website-flight': [
+          { id: 101, text: 'Perfect. That\'s the move.', author: 'Adrian', time: '3:24 PM', reactions: [{ emoji: '✅', count: 1 }] },
+          { id: 102, text: 'Small thing: the desktop-to-mobile handoff still feels a little fast.', author: 'Maya Chen', time: '3:25 PM', reactions: [{ emoji: '👀', count: 1 }] },
+          { id: 103, text: 'Yeah — I want one extra beat on the sent message.', author: 'Jordan Brooks', time: '3:25 PM', reactions: [] },
+          { id: 104, text: 'That would give the camera somewhere to land too.', author: 'Camille Dubois', time: '3:25 PM', reactions: [] },
+          { id: 105, text: 'Fizz can you turn that into a clean three-beat capture plan?', author: 'Maya Chen', time: '3:25 PM', reactions: [{ emoji: '👀', count: 1 }, { emoji: '💬', count: 1 }] },
+          { id: 106, text: `Absolutely — clean three-beat capture plan:
 1. Desktop compose
    • Start on the project view.
    • One clean cursor move into the update field.
@@ -133,31 +133,65 @@ const threadsData = {
 
 Tiny rule of thumb: cursor moves once, transition breathes once, sent state lands once. Nice and buzzy 🐝✨
 @honey over to you for the final capture pass.`, author: 'Fizz', time: '3:26 PM', reactions: [{ emoji: '👀', count: 1 }, { emoji: '💬', count: 1 }] },
-      { id: 107, text: 'Looks great, thanks!', author: 'Honey', time: '3:27 PM', replyTo: 106, reactions: [] },
-      { id: 108, text: '+1 on the extra beat.', author: 'Maya Chen', time: '3:28 PM', replyTo: 106, reactions: [] }
-    ],
-    'website-releases': [
-      { id: 2001, text: 'v1.2 is scheduled for Friday.', author: 'Release bot', time: '08:30', tag: '#release', reactions: [{ emoji: '🚀', count: 1 }] }
-    ],
-    'website-code-review': [],
-    'website-ui': [
-      { id: 3001, text: 'New mockups are uploaded.', author: 'Honey', time: '12:00', reactions: [] }
-    ]
-  },
-  directMessagesById: {
-    adrian: [
-      { id: 101, text: 'Hey, can you review the PR?', author: 'Adrian', time: '10:00', reactions: [] },
-      { id: 102, text: 'Sure, I will check it soon.', author: 'You', time: '10:05', reactions: [] },
-      { id: 103, text: '@You also check the latest deploy.', author: 'Adrian', time: '10:10', reactions: [] }
-    ],
-    'release-bot': [
-      { id: 201, text: 'v1.2 is scheduled for Friday.', author: 'Release bot', time: '08:30', tag: '#release', reactions: [{ emoji: '🚀', count: 1 }] }
-    ],
-    maya: [
-      { id: 301, text: 'Hi @You, can we sync today?', author: 'Maya Chen', time: '09:00', reactions: [] }
-    ]
-  },
-  tags: ['#bug', '#feature', '#question', '#release']
+          { id: 107, text: 'Looks great, thanks!', author: 'Honey', time: '3:27 PM', replyTo: 106, reactions: [] },
+          { id: 108, text: '+1 on the extra beat.', author: 'Maya Chen', time: '3:28 PM', replyTo: 106, reactions: [] }
+        ],
+        'website-releases': [
+          { id: 2001, text: 'v1.2 is scheduled for Friday.', author: 'Release bot', time: '08:30', tag: '#release', reactions: [{ emoji: '🚀', count: 1 }] }
+        ],
+        'website-code-review': [],
+        'website-ui': [
+          { id: 3001, text: 'New mockups are uploaded.', author: 'Honey', time: '12:00', reactions: [] }
+        ]
+      },
+      directMessagesById: {
+        adrian: [
+          { id: 101, text: 'Hey, can you review the PR?', author: 'Adrian', time: '10:00', reactions: [] },
+          { id: 102, text: 'Sure, I will check it soon.', author: 'You', time: '10:05', reactions: [] },
+          { id: 103, text: '@You also check the latest deploy.', author: 'Adrian', time: '10:10', reactions: [] }
+        ],
+        'release-bot': [
+          { id: 201, text: 'v1.2 is scheduled for Friday.', author: 'Release bot', time: '08:30', tag: '#release', reactions: [{ emoji: '🚀', count: 1 }] }
+        ],
+        maya: [
+          { id: 301, text: 'Hi @You, can we sync today?', author: 'Maya Chen', time: '09:00', reactions: [] }
+        ]
+      },
+      tags: ['#bug', '#feature', '#question', '#release']
+    },
+    {
+      id: 'personal',
+      name: 'Personal',
+      color: '#10b981',
+      channels: [
+        { id: 'personal-general', name: 'general', private: false, unread: 0 }
+      ],
+      directMessages: [],
+      projects: [],
+      messagesByChannel: {
+        'personal-general': []
+      },
+      directMessagesById: {},
+      tags: ['#bug', '#feature', '#question', '#release']
+    },
+    {
+      id: 'clients',
+      name: 'Clients',
+      color: '#f97316',
+      channels: [
+        { id: 'client-a', name: 'Client A', private: false, unread: 0 },
+        { id: 'client-b', name: 'Client B', private: true, unread: 0 }
+      ],
+      directMessages: [],
+      projects: [],
+      messagesByChannel: {
+        'client-a': [],
+        'client-b': []
+      },
+      directMessagesById: {},
+      tags: ['#bug', '#feature', '#question', '#release']
+    }
+  ]
 };
 const threadsView = new window.ThreadsView(
   document.getElementById('threads-view'),

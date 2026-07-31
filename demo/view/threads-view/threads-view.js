@@ -1,9 +1,39 @@
+window.Modal = class Modal {
+  constructor(title) {
+    this.overlay = document.createElement('div');
+    this.overlay.className = 'modal-overlay';
+    this.container = document.createElement('div');
+    this.container.className = 'modal-container';
+    this.container.innerHTML = `
+      <div class="modal-header">
+        <h3>${title}</h3>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body"></div>
+    `;
+    this.body = this.container.querySelector('.modal-body');
+    this.overlay.appendChild(this.container);
+    document.body.appendChild(this.overlay);
+    this.container.querySelector('.modal-close').addEventListener('click', () => this.close());
+    this.overlay.addEventListener('click', e => { if (e.target === this.overlay) this.close(); });
+    this._onKey = e => { if (e.key === 'Escape') this.close(); };
+    document.addEventListener('keydown', this._onKey);
+  }
+
+  close() {
+    document.removeEventListener('keydown', this._onKey);
+    this.overlay.remove();
+  }
+};
+
 window.WorkspaceSidebar = class WorkspaceSidebar {
-  constructor(el, workspaces, onSelect) {
+  constructor(el, workspaces, callbacks) {
     this.el = el;
     this.workspaces = workspaces || [];
-    this.onSelect = onSelect;
-    this.currentWorkspaceId = this.workspaces[0]?.id || null;
+    this.onSelect = callbacks?.onSelect;
+    this.onEdit = callbacks?.onEdit;
+    this.onAdd = callbacks?.onAdd;
+    this.currentWorkspaceId = workspaces[0]?.id || null;
     this.render();
   }
 
@@ -24,12 +54,18 @@ window.WorkspaceSidebar = class WorkspaceSidebar {
     this.el.querySelectorAll('.workspace-item').forEach(item => {
       item.addEventListener('click', () => this.select(item.dataset.id));
     });
+    this.el.querySelectorAll('.workspace-edit').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        this.onEdit?.(btn.dataset.id);
+      });
+    });
     this.el.querySelector('.workspace-add').addEventListener('click', () => {
       const id = 'workspace-' + Date.now();
       const name = 'New';
       const color = this._randomColor();
-      this.workspaces.push({ id, name, color });
-      this.select(id);
+      this.workspaces.push({ id, name, color, channels: [], directMessages: [], projects: [], messagesByChannel: {}, directMessagesById: {}, tags: ['#bug', '#feature', '#question', '#release'] });
+      this.onAdd?.(id);
     });
   }
 
@@ -39,6 +75,7 @@ window.WorkspaceSidebar = class WorkspaceSidebar {
     return `
       <div class="workspace-item ${selected ? 'selected' : ''}" data-id="${w.id}" style="background:${w.color}" title="${this._escapeHtml(w.name)}">
         <span class="workspace-initials">${initials}</span>
+        <button class="workspace-edit" data-id="${w.id}" title="Edit workspace">✎</button>
       </div>
     `;
   }
@@ -191,21 +228,29 @@ window.ThreadsView = class ThreadsView {
     this.onAgents = callbacks?.onAgents;
     this.workspaces = data.workspaces || [];
     this.currentWorkspaceId = this.workspaces[0]?.id || null;
-    this.channels = data.channels || [];
-    this.projects = data.projects || [];
-    this.directMessages = data.directMessages || [];
-    this.messagesByChannel = data.messagesByChannel || {};
-    this.directMessagesById = data.directMessagesById || {};
-    this.tags = data.tags || ['#bug', '#feature', '#question', '#release'];
-    this.reactionEmojis = ['👀', '💬', '🎉', '👍', '🔥'];
+    this.useWorkspace(this.currentWorkspaceId);
     this.currentView = 'channel';
     this.currentChannelId = this.channels[0]?.id || null;
-    this.currentProjectId = null;
     this.currentDirectMessageId = null;
     this.replyTo = null;
     this.currentTag = '';
-    this.showNewProjectForm = false;
+    this.reactionPickerEl = null;
+    this._pickerClickOutside = null;
     this.render();
+  }
+
+  useWorkspace(id) {
+    this.currentWorkspaceId = id;
+    const ws = this.workspaces.find(w => w.id === id);
+    this.activeWorkspace = ws;
+    if (!ws) return;
+    this.channels = ws.channels || [];
+    this.directMessages = ws.directMessages || [];
+    this.projects = ws.projects || [];
+    this.messagesByChannel = ws.messagesByChannel || {};
+    this.directMessagesById = ws.directMessagesById || {};
+    this.tags = ws.tags || ['#bug', '#feature', '#question', '#release'];
+    this.reactionEmojis = ['👀', '💬', '🎉', '👍', '🔥'];
   }
 
   render() {
@@ -254,7 +299,11 @@ window.ThreadsView = class ThreadsView {
     this.tagBtn = this.el.querySelector('.tag-btn');
     this.sendBtn = this.el.querySelector('.composer-send');
 
-    this.workspaceSidebar = new window.WorkspaceSidebar(this.workspaceSidebarEl, this.workspaces, id => this.selectWorkspace(id));
+    this.workspaceSidebar = new window.WorkspaceSidebar(this.workspaceSidebarEl, this.workspaces, {
+      onSelect: id => this.selectWorkspace(id),
+      onEdit: id => this.openWorkspaceModal(id),
+      onAdd: id => this.selectWorkspace(id)
+    });
     this.sidebar = new window.ThreadsSidebar(this.sidebarEl, this._sidebarData(), {
       selectedItem: this._selectedItem(),
       onSelect: item => this.selectItem(item),
@@ -286,14 +335,20 @@ window.ThreadsView = class ThreadsView {
   }
 
   selectWorkspace(id) {
-    this.currentWorkspaceId = id;
-    this.workspaceSidebar.select(id);
+    this.hideReactionPicker();
+    this.useWorkspace(id);
+    this.currentView = 'channel';
+    this.currentChannelId = this.channels[0]?.id || null;
+    this.currentDirectMessageId = null;
+    this.replyTo = null;
+    this.currentTag = '';
+    this.render();
   }
 
   selectItem(item) {
+    this.hideReactionPicker();
     this.replyTo = null;
     this.currentTag = '';
-    this.showNewProjectForm = false;
     if (item.type === 'agents') {
       this.onAgents?.();
       return;
@@ -301,8 +356,8 @@ window.ThreadsView = class ThreadsView {
     if (item.type === 'inbox') {
       this.currentView = 'inbox';
     } else if (item.type === 'projects') {
-      this.currentView = 'projects';
-      this.currentProjectId = null;
+      this.openProjectsModal();
+      return;
     } else if (item.type === 'channel') {
       this.currentView = 'channel';
       this.currentChannelId = item.id;
@@ -329,8 +384,10 @@ window.ThreadsView = class ThreadsView {
       this.mainContentEl.innerHTML = '<div class="inbox-view"></div>';
       this.renderInbox();
     } else if (this.currentView === 'projects') {
-      this.mainContentEl.innerHTML = '<div class="projects-view"></div>';
-      this.renderProjects();
+      // Projects is now a modal; keep current view
+      this.mainContentEl.innerHTML = '<div class="threads-messages"></div>';
+      this.messagesEl = this.mainContentEl.querySelector('.threads-messages');
+      this.renderMessages(this.currentMessages());
     } else {
       this.mainContentEl.innerHTML = '<div class="threads-messages"></div>';
       this.messagesEl = this.mainContentEl.querySelector('.threads-messages');
@@ -340,7 +397,6 @@ window.ThreadsView = class ThreadsView {
 
   _headerIcon() {
     if (this.currentView === 'inbox') return '📥';
-    if (this.currentView === 'projects') return '📁';
     if (this.currentView === 'channel') {
       const channel = this.findChannel(this.currentChannelId);
       return channel?.private ? '🔒' : '#';
@@ -354,7 +410,6 @@ window.ThreadsView = class ThreadsView {
 
   _headerTitle() {
     if (this.currentView === 'inbox') return 'Inbox';
-    if (this.currentView === 'projects') return 'Projects';
     if (this.currentView === 'channel') return this.findChannel(this.currentChannelId)?.name || '';
     if (this.currentView === 'directMessage') return this.directMessages.find(d => d.id === this.currentDirectMessageId)?.name || '';
     return '';
@@ -430,7 +485,7 @@ window.ThreadsView = class ThreadsView {
       `;
       el.querySelector('.reply-btn').addEventListener('click', () => this.replyToMessage(msg.id));
       el.querySelector('.tag-btn').addEventListener('click', () => this.cycleMessageTag(msg.id));
-      el.querySelector('.react-btn').addEventListener('click', () => this.addReaction(msg.id, '👀'));
+      el.querySelector('.react-btn').addEventListener('click', e => this.showReactionPicker(msg.id, e.currentTarget));
       el.querySelectorAll('.reaction').forEach(btn => {
         btn.addEventListener('click', () => this.addReaction(msg.id, btn.dataset.emoji));
       });
@@ -440,6 +495,48 @@ window.ThreadsView = class ThreadsView {
       }
       this.messagesEl.appendChild(el);
     });
+  }
+
+  showReactionPicker(messageId, anchorEl) {
+    this.hideReactionPicker();
+    const picker = document.createElement('div');
+    picker.className = 'reaction-picker';
+    const emojis = ['👍', '❤️', '😂', '🎉', '😊', '👀', '🔥', '🚀'];
+    picker.innerHTML = emojis.map(e => `<button class="reaction-picker-emoji">${e}</button>`).join('') + `<button class="reaction-picker-close">×</button>`;
+    document.body.appendChild(picker);
+    const rect = anchorEl.getBoundingClientRect();
+    const pickerRect = picker.getBoundingClientRect();
+    let left = rect.left;
+    let top = rect.bottom + 6;
+    if (left + pickerRect.width > window.innerWidth) left = window.innerWidth - pickerRect.width - 8;
+    if (top + pickerRect.height > window.innerHeight) top = rect.top - pickerRect.height - 6;
+    picker.style.left = left + 'px';
+    picker.style.top = top + 'px';
+    picker.querySelectorAll('.reaction-picker-emoji').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.addReaction(messageId, btn.textContent);
+        this.hideReactionPicker();
+      });
+    });
+    picker.querySelector('.reaction-picker-close').addEventListener('click', () => this.hideReactionPicker());
+    this.reactionPickerEl = picker;
+    setTimeout(() => {
+      this._pickerClickOutside = e => {
+        if (!picker.contains(e.target)) this.hideReactionPicker();
+      };
+      document.addEventListener('click', this._pickerClickOutside);
+    }, 0);
+  }
+
+  hideReactionPicker() {
+    if (this.reactionPickerEl) {
+      this.reactionPickerEl.remove();
+      this.reactionPickerEl = null;
+    }
+    if (this._pickerClickOutside) {
+      document.removeEventListener('click', this._pickerClickOutside);
+      this._pickerClickOutside = null;
+    }
   }
 
   renderInbox() {
@@ -480,91 +577,199 @@ window.ThreadsView = class ThreadsView {
     container.appendChild(list);
   }
 
-  renderProjects() {
-    const container = this.mainContentEl.querySelector('.projects-view');
-    container.innerHTML = `
-      <div class="projects-header">
-        <button class="new-project-btn">+ New project</button>
+  openWorkspaceModal(id) {
+    const ws = this.workspaces.find(w => w.id === id);
+    if (!ws) return;
+    const modal = new window.Modal('Edit workspace');
+    modal.body.innerHTML = `
+      <div class="modal-form">
+        <label>Workspace name</label>
+        <input type="text" class="modal-input workspace-name" value="${this._escapeHtml(ws.name)}" />
+        <label>Color</label>
+        <div class="color-swatches">
+          ${['#2563eb', '#10b981', '#f97316', '#ec4899', '#8b5cf6', '#ef4444', '#14b8a6', '#f59e0b'].map(c => `<button class="color-swatch ${c === ws.color ? 'selected' : ''}" style="background:${c}" data-color="${c}"></button>`).join('')}
+        </div>
+        <label>Channels</label>
+        <div class="modal-channel-list"></div>
+        <button class="modal-add-btn add-channel">+ Add channel</button>
       </div>
-      <div class="projects-list"></div>
     `;
-    const list = container.querySelector('.projects-list');
-    if (this.showNewProjectForm) {
-      const form = document.createElement('div');
-      form.className = 'new-project-form';
-      form.innerHTML = `
-        <input type="text" class="new-project-name" placeholder="Project name" />
-        <input type="text" class="new-project-group" placeholder="First group (e.g. Engineering)" />
-        <div class="new-project-actions">
-          <button class="create-project-btn btn">Create</button>
-          <button class="cancel-project-btn btn secondary">Cancel</button>
-        </div>
-      `;
-      list.appendChild(form);
-      form.querySelector('.create-project-btn').addEventListener('click', () => this.createProject());
-      form.querySelector('.cancel-project-btn').addEventListener('click', () => {
-        this.showNewProjectForm = false;
-        this.renderProjects();
+    const nameInput = modal.body.querySelector('.workspace-name');
+    const swatches = modal.body.querySelectorAll('.color-swatch');
+    swatches.forEach(btn => {
+      btn.addEventListener('click', () => {
+        swatches.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
       });
-      form.querySelector('.new-project-name').addEventListener('keydown', e => { if (e.key === 'Enter') this.createProject(); });
-      form.querySelector('.new-project-group').addEventListener('keydown', e => { if (e.key === 'Enter') this.createProject(); });
-    }
-    this.projects.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'project-card';
-      let channelsHtml = '';
-      (p.groups || []).forEach(g => {
-        channelsHtml += `<div class="project-group-name">${this._escapeHtml(g.name)}</div>`;
-        channelsHtml += `<div class="project-group-channels">`;
-        (g.channels || []).forEach(c => {
-          const icon = c.private ? '🔒' : '#';
-          channelsHtml += `
-            <div class="project-channel-item" data-channel-id="${c.id}">
-              <span class="channel-icon">${icon}</span>
-              <span class="channel-name">${this._escapeHtml(c.name)}</span>
-              ${c.unread ? `<span class="unread-badge">${c.unread}</span>` : ''}
-            </div>
-          `;
-        });
-        channelsHtml += `</div>`;
-      });
-      card.innerHTML = `
-        <div class="project-header">
-          <span class="project-icon">📁</span>
-          <span class="project-name">${this._escapeHtml(p.name)}</span>
-        </div>
-        ${channelsHtml}
-      `;
-      card.querySelectorAll('.project-channel-item').forEach(item => {
-        item.addEventListener('click', () => {
-          this.selectItem({ type: 'channel', id: item.dataset.channelId });
-        });
-      });
-      list.appendChild(card);
     });
-    container.querySelector('.new-project-btn').addEventListener('click', () => {
-      this.showNewProjectForm = true;
-      this.renderProjects();
+    const list = modal.body.querySelector('.modal-channel-list');
+    const renderChannels = () => {
+      list.innerHTML = ws.channels.map((c, idx) => `
+        <div class="modal-channel-row" data-idx="${idx}">
+          <input type="text" class="modal-input channel-name" value="${this._escapeHtml(c.name)}" placeholder="Channel name" />
+          <label class="modal-checkbox"><input type="checkbox" class="channel-private" ${c.private ? 'checked' : ''} /> Private</label>
+          <button class="modal-delete-btn delete-channel">🗑</button>
+        </div>
+      `).join('');
+      list.querySelectorAll('.delete-channel').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.closest('.modal-channel-row').dataset.idx);
+          const removed = ws.channels[idx];
+          ws.channels.splice(idx, 1);
+          delete ws.messagesByChannel[removed.id];
+          renderChannels();
+        });
+      });
+    };
+    renderChannels();
+    modal.body.querySelector('.add-channel').addEventListener('click', () => {
+      const cid = 'channel-' + Date.now() + '-' + ws.channels.length;
+      ws.channels.push({ id: cid, name: 'new-channel', private: false, unread: 0 });
+      ws.messagesByChannel[cid] = [];
+      renderChannels();
+    });
+    modal.container.querySelector('.modal-close').addEventListener('click', () => {
+      modal.body.querySelectorAll('.modal-channel-row').forEach((row, idx) => {
+        const name = row.querySelector('.channel-name').value.trim() || ws.channels[idx].name;
+        ws.channels[idx].name = name;
+        ws.channels[idx].private = row.querySelector('.channel-private').checked;
+      });
+      ws.name = nameInput.value.trim() || ws.name;
+      const selected = modal.body.querySelector('.color-swatch.selected');
+      if (selected) ws.color = selected.dataset.color;
+      modal.close();
+      this.useWorkspace(this.currentWorkspaceId);
+      if (this.currentView === 'channel' && !this.findChannel(this.currentChannelId)) {
+        this.currentChannelId = this.channels[0]?.id || null;
+      }
+      this.render();
     });
   }
 
-  createProject() {
-    const container = this.mainContentEl.querySelector('.projects-view');
-    const nameInput = container.querySelector('.new-project-name');
-    const groupInput = container.querySelector('.new-project-group');
-    const name = nameInput.value.trim();
-    const groupName = groupInput.value.trim() || 'General';
-    if (!name) return;
-    const id = 'project-' + Date.now();
-    this.projects.push({
-      id,
-      name,
-      groups: [{ name: groupName, channels: [{ id: id + '-general', name: 'general', private: false, unread: 0 }] }]
+  openProjectsModal() {
+    const ws = this.activeWorkspace;
+    const modal = new window.Modal('Manage projects');
+    modal.body.innerHTML = `
+      <div class="modal-form">
+        <div class="modal-projects-list"></div>
+        <button class="modal-add-btn add-project">+ Add project</button>
+      </div>
+    `;
+    const projectsList = modal.body.querySelector('.modal-projects-list');
+    const renderProjects = () => {
+      projectsList.innerHTML = ws.projects.map((p, pIdx) => `
+        <div class="modal-project-card" data-idx="${pIdx}">
+          <div class="modal-project-header">
+            <input type="text" class="modal-input project-name" value="${this._escapeHtml(p.name)}" placeholder="Project name" />
+            <button class="modal-delete-btn delete-project">🗑</button>
+          </div>
+          <div class="modal-groups-list">
+            ${(p.groups || []).map((g, gIdx) => `
+              <div class="modal-group" data-gidx="${gIdx}">
+                <div class="modal-group-header">
+                  <input type="text" class="modal-input group-name" value="${this._escapeHtml(g.name)}" placeholder="Group name" />
+                  <button class="modal-delete-btn delete-group">🗑</button>
+                </div>
+                <div class="modal-project-channels-list">
+                  ${(g.channels || []).map((c, cIdx) => `
+                    <div class="modal-project-channel-row" data-cidx="${cIdx}">
+                      <input type="text" class="modal-input channel-name" value="${this._escapeHtml(c.name)}" placeholder="Channel name" />
+                      <label class="modal-checkbox"><input type="checkbox" class="channel-private" ${c.private ? 'checked' : ''} /> Private</label>
+                      <button class="modal-delete-btn delete-channel">🗑</button>
+                    </div>
+                  `).join('')}
+                </div>
+                <button class="modal-add-btn add-project-channel">+ Add channel</button>
+              </div>
+            `).join('')}
+          </div>
+          <button class="modal-add-btn add-group">+ Add group</button>
+        </div>
+      `).join('');
+      projectsList.querySelectorAll('.delete-project').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const pIdx = Number(btn.closest('.modal-project-card').dataset.idx);
+          const project = ws.projects[pIdx];
+          (project.groups || []).forEach(g => (g.channels || []).forEach(c => delete ws.messagesByChannel[c.id]));
+          ws.projects.splice(pIdx, 1);
+          renderProjects();
+        });
+      });
+      projectsList.querySelectorAll('.delete-group').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = btn.closest('.modal-project-card');
+          const pIdx = Number(card.dataset.idx);
+          const group = btn.closest('.modal-group');
+          const gIdx = Number(group.dataset.gidx);
+          (ws.projects[pIdx].groups[gIdx].channels || []).forEach(c => delete ws.messagesByChannel[c.id]);
+          ws.projects[pIdx].groups.splice(gIdx, 1);
+          renderProjects();
+        });
+      });
+      projectsList.querySelectorAll('.delete-channel').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = btn.closest('.modal-project-card');
+          const pIdx = Number(card.dataset.idx);
+          const group = btn.closest('.modal-group');
+          const gIdx = Number(group.dataset.gidx);
+          const row = btn.closest('.modal-project-channel-row');
+          const cIdx = Number(row.dataset.cidx);
+          const removed = ws.projects[pIdx].groups[gIdx].channels[cIdx];
+          delete ws.messagesByChannel[removed.id];
+          ws.projects[pIdx].groups[gIdx].channels.splice(cIdx, 1);
+          renderProjects();
+        });
+      });
+      projectsList.querySelectorAll('.add-project-channel').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = btn.closest('.modal-project-card');
+          const pIdx = Number(card.dataset.idx);
+          const group = btn.closest('.modal-group');
+          const gIdx = Number(group.dataset.gidx);
+          const cid = 'project-' + pIdx + '-channel-' + Date.now() + '-' + gIdx;
+          ws.projects[pIdx].groups[gIdx].channels.push({ id: cid, name: 'new-channel', private: false, unread: 0 });
+          ws.messagesByChannel[cid] = [];
+          renderProjects();
+        });
+      });
+      projectsList.querySelectorAll('.add-group').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const pIdx = Number(btn.closest('.modal-project-card').dataset.idx);
+          ws.projects[pIdx].groups.push({ name: 'New group', channels: [] });
+          renderProjects();
+        });
+      });
+    };
+    renderProjects();
+    modal.body.querySelector('.add-project').addEventListener('click', () => {
+      const pid = 'project-' + Date.now();
+      ws.projects.push({ id: pid, name: 'New project', groups: [] });
+      renderProjects();
     });
-    this.messagesByChannel[id + '-general'] = [];
-    this.showNewProjectForm = false;
-    this.renderProjects();
-    this.sidebar.update(this._sidebarData(), this._selectedItem());
+    modal.container.querySelector('.modal-close').addEventListener('click', () => {
+      modal.body.querySelectorAll('.modal-project-card').forEach(card => {
+        const pIdx = Number(card.dataset.idx);
+        const project = ws.projects[pIdx];
+        project.name = card.querySelector('.project-name').value.trim() || project.name;
+        card.querySelectorAll('.modal-group').forEach(group => {
+          const gIdx = Number(group.dataset.gidx);
+          const g = project.groups[gIdx];
+          g.name = group.querySelector('.group-name').value.trim() || g.name;
+          group.querySelectorAll('.modal-project-channel-row').forEach(row => {
+            const cIdx = Number(row.dataset.cidx);
+            const c = g.channels[cIdx];
+            c.name = row.querySelector('.channel-name').value.trim() || c.name;
+            c.private = row.querySelector('.channel-private').checked;
+          });
+        });
+      });
+      modal.close();
+      this.useWorkspace(this.currentWorkspaceId);
+      if (this.currentView === 'channel' && !this.findChannel(this.currentChannelId)) {
+        this.currentChannelId = this.channels[0]?.id || null;
+      }
+      this.render();
+    });
   }
 
   computeInbox() {
