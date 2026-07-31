@@ -51,6 +51,13 @@ body {
   background: #2a2e36;
 }
 
+.topbar-left,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 #main-view {
   flex: 1;
   display: flex;
