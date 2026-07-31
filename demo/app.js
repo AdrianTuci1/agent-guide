@@ -44,6 +44,11 @@ const agentsView = new window.AgentsView(
 );
 
 const threadsData = {
+  workspaces: [
+    { id: 'acme', name: 'Acme', color: '#2563eb' },
+    { id: 'personal', name: 'Personal', color: '#10b981' },
+    { id: 'clients', name: 'Clients', color: '#f97316' }
+  ],
   channels: [
     { id: 'demo', name: 'Demo Channel', private: false, unread: 2, total: 6 },
     { id: 'devdigest', name: 'DevDigest', private: false, unread: 0 },

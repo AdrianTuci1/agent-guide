@@ -1,3 +1,61 @@
+window.WorkspaceSidebar = class WorkspaceSidebar {
+  constructor(el, workspaces, onSelect) {
+    this.el = el;
+    this.workspaces = workspaces || [];
+    this.onSelect = onSelect;
+    this.currentWorkspaceId = this.workspaces[0]?.id || null;
+    this.render();
+  }
+
+  select(id) {
+    this.currentWorkspaceId = id;
+    this.onSelect?.(id);
+    this.render();
+  }
+
+  render() {
+    this.el.innerHTML = `
+      <div class="workspace-list">
+        ${this.workspaces.map(w => this._workspaceItem(w)).join('')}
+      </div>
+      <div class="workspace-divider"></div>
+      <button class="workspace-add" title="Add workspace">+</button>
+    `;
+    this.el.querySelectorAll('.workspace-item').forEach(item => {
+      item.addEventListener('click', () => this.select(item.dataset.id));
+    });
+    this.el.querySelector('.workspace-add').addEventListener('click', () => {
+      const id = 'workspace-' + Date.now();
+      const name = 'New';
+      const color = this._randomColor();
+      this.workspaces.push({ id, name, color });
+      this.select(id);
+    });
+  }
+
+  _workspaceItem(w) {
+    const selected = w.id === this.currentWorkspaceId;
+    const initials = w.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    return `
+      <div class="workspace-item ${selected ? 'selected' : ''}" data-id="${w.id}" style="background:${w.color}" title="${this._escapeHtml(w.name)}">
+        <span class="workspace-initials">${initials}</span>
+      </div>
+    `;
+  }
+
+  _randomColor() {
+    const colors = ['#2563eb', '#10b981', '#f97316', '#ec4899', '#8b5cf6', '#ef4444', '#14b8a6', '#f59e0b'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  _escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+};
+
 window.ThreadsSidebar = class ThreadsSidebar {
   constructor(el, data, callbacks) {
     this.el = el;
@@ -64,9 +122,10 @@ window.ThreadsSidebar = class ThreadsSidebar {
   _dmItem(d) {
     const selected = this.selectedItem.type === 'directMessage' && this.selectedItem.id === d.id;
     const badge = d.unread ? `<span class="unread-badge">${d.unread}</span>` : '';
+    const avatar = this._avatarHtml(d.name, true);
     return `
       <div class="dm-item ${selected ? 'selected' : ''}" data-type="directMessage" data-id="${d.id}">
-        <span class="dm-status ${d.online ? 'online' : ''}"></span>
+        <span class="dm-avatar">${avatar}</span>
         <span class="dm-name">${this._escapeHtml(d.name)}</span>
         ${badge}
       </div>
@@ -91,6 +150,33 @@ window.ThreadsSidebar = class ThreadsSidebar {
     });
   }
 
+  _avatarHtml(author, small) {
+    const color = this._avatarColor(author);
+    const initials = author.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    const sizeClass = small ? ' avatar-small' : '';
+    return `<div class="threads-message-avatar${sizeClass}" style="background:${color}" title="${this._escapeHtml(author)}">${initials}</div>`;
+  }
+
+  _avatarColor(author) {
+    const colors = {
+      'Adrian': '#2563eb',
+      'You': '#22c55e',
+      'Release bot': '#9ca3af',
+      'Maya Chen': '#ec4899',
+      'Jordan Brooks': '#8b5cf6',
+      'Camille Dubois': '#f97316',
+      'Fizz': '#10b981',
+      'Honey': '#ef4444'
+    };
+    if (colors[author]) return colors[author];
+    let hash = 0;
+    for (let i = 0; i < author.length; i++) {
+      hash = author.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return 'hsl(' + hue + ', 60%, 45%)';
+  }
+
   _escapeHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -103,6 +189,8 @@ window.ThreadsView = class ThreadsView {
   constructor(el, data, callbacks) {
     this.el = el;
     this.onAgents = callbacks?.onAgents;
+    this.workspaces = data.workspaces || [];
+    this.currentWorkspaceId = this.workspaces[0]?.id || null;
     this.channels = data.channels || [];
     this.projects = data.projects || [];
     this.directMessages = data.directMessages || [];
@@ -123,6 +211,7 @@ window.ThreadsView = class ThreadsView {
   render() {
     this.el.innerHTML = `
       <div class="threads-view">
+        <div class="threads-workspace-sidebar"></div>
         <div class="threads-sidebar"></div>
         <div class="threads-main">
           <div class="threads-header">
@@ -154,6 +243,7 @@ window.ThreadsView = class ThreadsView {
       </div>
     `;
 
+    this.workspaceSidebarEl = this.el.querySelector('.threads-workspace-sidebar');
     this.sidebarEl = this.el.querySelector('.threads-sidebar');
     this.headerIconEl = this.el.querySelector('.header-icon');
     this.headerTitleEl = this.el.querySelector('.header-title');
@@ -164,6 +254,7 @@ window.ThreadsView = class ThreadsView {
     this.tagBtn = this.el.querySelector('.tag-btn');
     this.sendBtn = this.el.querySelector('.composer-send');
 
+    this.workspaceSidebar = new window.WorkspaceSidebar(this.workspaceSidebarEl, this.workspaces, id => this.selectWorkspace(id));
     this.sidebar = new window.ThreadsSidebar(this.sidebarEl, this._sidebarData(), {
       selectedItem: this._selectedItem(),
       onSelect: item => this.selectItem(item),
@@ -192,6 +283,11 @@ window.ThreadsView = class ThreadsView {
     if (this.currentView === 'channel') return { type: 'channel', id: this.currentChannelId };
     if (this.currentView === 'directMessage') return { type: 'directMessage', id: this.currentDirectMessageId };
     return { type: this.currentView };
+  }
+
+  selectWorkspace(id) {
+    this.currentWorkspaceId = id;
+    this.workspaceSidebar.select(id);
   }
 
   selectItem(item) {
