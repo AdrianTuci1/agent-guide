@@ -7,7 +7,12 @@ window.Sidebar = class Sidebar {
     this.onNewChat = onNewChat;
     this.onOpenAgents = onOpenAgents;
     this.activeId = null;
+    this.running = false;
     this.render();
+  }
+
+  setRunning(running) {
+    this.running = running;
   }
 
   render() {
@@ -19,9 +24,9 @@ window.Sidebar = class Sidebar {
           <h3>Active</h3>
           <div class="active-list conversation-list"></div>
         </div>
-        <div class="sidebar-section past-section">
-          <h3>Past</h3>
-          <div class="past-list conversation-list"></div>
+        <div class="sidebar-section inactive-section">
+          <h3>Inactive</h3>
+          <div class="inactive-list conversation-list"></div>
         </div>
       </div>
       <div class="sidebar-collapsed-content">
@@ -40,7 +45,7 @@ window.Sidebar = class Sidebar {
 
   renderLists() {
     this.renderList(this.activeConversations, this.el.querySelector('.active-list'));
-    this.renderList(this.pastConversations, this.el.querySelector('.past-list'));
+    this.renderList(this.pastConversations, this.el.querySelector('.inactive-list'));
   }
 
   refresh() {
@@ -58,7 +63,7 @@ window.Sidebar = class Sidebar {
     }
     conversations.forEach(conv => {
       const item = document.createElement('div');
-      item.className = 'conversation-item' + (conv.id === this.activeId ? ' active' : '');
+      item.className = 'conversation-item' + (conv.id === this.activeId ? ' active' : '') + (conv.id === this.activeId && this.running ? ' running' : '');
       item.textContent = conv.title;
       item.dataset.id = conv.id;
       item.addEventListener('click', () => this.select(conv.id));

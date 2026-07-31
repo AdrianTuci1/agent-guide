@@ -73,7 +73,7 @@
 }
 
 .active-section h3,
-.past-section h3 {
+.inactive-section h3 {
   margin: 0 0 8px 0;
   font-size: 12px;
   font-weight: 600;
@@ -82,12 +82,12 @@
   letter-spacing: 0.5px;
 }
 
-.past-section .conversation-item {
+.inactive-section .conversation-item {
   color: #8b949e;
 }
 
-.past-section .conversation-item:hover,
-.past-section .conversation-item.active {
+.inactive-section .conversation-item:hover,
+.inactive-section .conversation-item.active {
   color: #e4e6eb;
 }
 
@@ -125,6 +125,17 @@
 .conversation-item.active {
   background: #21252e;
   color: #e4e6eb;
+}
+
+.conversation-item.active.running::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  margin-right: 6px;
+  animation: pulse 1.4s infinite;
 }
 
 /* Collapsed rail */

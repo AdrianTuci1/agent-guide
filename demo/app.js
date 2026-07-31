@@ -16,6 +16,10 @@ const conversations = [
 ];
 
 const chatWindow = new window.ChatWindow(document.getElementById('chat-view'));
+chatWindow.chat.onRunningChange = (running) => {
+  sidebar.setRunning(running);
+  sidebar.refresh();
+};
 
 let selectedAgentId = null;
 

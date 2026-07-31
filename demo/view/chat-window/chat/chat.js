@@ -5,6 +5,7 @@ window.Chat = class Chat {
     this.runningBarEl = runningBarEl;
     this.renderBarEl = renderBarEl;
     this.renderLabelEl = renderLabelEl;
+    this.onRunningChange = null;
     this.autoApprove = false;
     this.renderMode = null;
     this.composerMode = 'default';
@@ -170,6 +171,7 @@ window.Chat = class Chat {
       this.renderBarEl.classList.remove('active');
     }
     this._updateRunningBar();
+    this.onRunningChange?.(!!this.renderMode);
   }
 
   _renderModeLabel(mode) {
