@@ -3,7 +3,7 @@
   --tv-bg: #0f1115;
   --tv-sidebar: #181b21;
   --tv-workspace: #0f1115;
-  --tv-modal-bg: #343842;
+  --tv-modal-bg: #4a4f5c;
   --tv-border: #2a2e36;
   --tv-text: #e4e6eb;
   --tv-muted: #8b949e;
@@ -849,7 +849,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 17, 21, 0.92);
+  background: rgba(0, 0, 0, 0.85);
   z-index: 1100;
   display: flex;
   align-items: center;
