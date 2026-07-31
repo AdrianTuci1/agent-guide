@@ -592,6 +592,9 @@ window.ThreadsView = class ThreadsView {
         <label>Channels</label>
         <div class="modal-channel-list"></div>
         <button class="modal-add-btn add-channel">+ Add channel</button>
+        <div class="modal-actions">
+          <button class="modal-delete-btn delete-workspace">Delete workspace</button>
+        </div>
       </div>
     `;
     const nameInput = modal.body.querySelector('.workspace-name');
@@ -608,7 +611,7 @@ window.ThreadsView = class ThreadsView {
         <div class="modal-channel-row" data-idx="${idx}">
           <input type="text" class="modal-input channel-name" value="${this._escapeHtml(c.name)}" placeholder="Channel name" />
           <label class="modal-checkbox"><input type="checkbox" class="channel-private" ${c.private ? 'checked' : ''} /> Private</label>
-          <button class="modal-delete-btn delete-channel">🗑</button>
+          <button class="modal-delete-btn delete-channel">Delete</button>
         </div>
       `).join('');
       list.querySelectorAll('.delete-channel').forEach(btn => {
@@ -627,6 +630,17 @@ window.ThreadsView = class ThreadsView {
       ws.channels.push({ id: cid, name: 'new-channel', private: false, unread: 0 });
       ws.messagesByChannel[cid] = [];
       renderChannels();
+    });
+    modal.body.querySelector('.delete-workspace').addEventListener('click', () => {
+      if (!confirm('Delete this workspace?')) return;
+      const idx = this.workspaces.findIndex(w => w.id === ws.id);
+      if (idx !== -1) this.workspaces.splice(idx, 1);
+      if (this.workspaces.length === 0) {
+        const newId = 'workspace-' + Date.now();
+        this.workspaces.push({ id: newId, name: 'Default', color: '#2563eb', channels: [], directMessages: [], projects: [], messagesByChannel: {}, directMessagesById: {}, tags: ['#bug', '#feature', '#question', '#release'] });
+      }
+      modal.close();
+      this.selectWorkspace(this.workspaces[0].id);
     });
     modal.container.querySelector('.modal-close').addEventListener('click', () => {
       modal.body.querySelectorAll('.modal-channel-row').forEach((row, idx) => {
@@ -661,21 +675,21 @@ window.ThreadsView = class ThreadsView {
         <div class="modal-project-card" data-idx="${pIdx}">
           <div class="modal-project-header">
             <input type="text" class="modal-input project-name" value="${this._escapeHtml(p.name)}" placeholder="Project name" />
-            <button class="modal-delete-btn delete-project">🗑</button>
+            <button class="modal-delete-btn delete-project">Delete project</button>
           </div>
           <div class="modal-groups-list">
             ${(p.groups || []).map((g, gIdx) => `
               <div class="modal-group" data-gidx="${gIdx}">
                 <div class="modal-group-header">
                   <input type="text" class="modal-input group-name" value="${this._escapeHtml(g.name)}" placeholder="Group name" />
-                  <button class="modal-delete-btn delete-group">🗑</button>
+                  <button class="modal-delete-btn delete-group">Delete group</button>
                 </div>
                 <div class="modal-project-channels-list">
                   ${(g.channels || []).map((c, cIdx) => `
                     <div class="modal-project-channel-row" data-cidx="${cIdx}">
                       <input type="text" class="modal-input channel-name" value="${this._escapeHtml(c.name)}" placeholder="Channel name" />
                       <label class="modal-checkbox"><input type="checkbox" class="channel-private" ${c.private ? 'checked' : ''} /> Private</label>
-                      <button class="modal-delete-btn delete-channel">🗑</button>
+                      <button class="modal-delete-btn delete-channel">Delete channel</button>
                     </div>
                   `).join('')}
                 </div>

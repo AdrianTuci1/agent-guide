@@ -3,6 +3,7 @@
   --tv-bg: #0f1115;
   --tv-sidebar: #181b21;
   --tv-workspace: #0f1115;
+  --tv-modal-bg: #1f232c;
   --tv-border: #2a2e36;
   --tv-text: #e4e6eb;
   --tv-muted: #8b949e;
@@ -857,7 +858,7 @@
 }
 
 .modal-container {
-  background: var(--tv-sidebar);
+  background: var(--tv-modal-bg);
   border: 1px solid var(--tv-border);
   border-radius: 10px;
   width: 100%;
@@ -978,18 +979,21 @@
 }
 
 .modal-delete-btn {
-  background: transparent;
-  border: none;
-  color: var(--tv-muted);
-  font-size: 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  padding: 4px;
+  padding: 4px 8px;
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 .modal-delete-btn:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fff;
 }
 
 .modal-add-btn {
@@ -1039,4 +1043,12 @@
 
 .modal-project-channels-list {
   margin-bottom: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--tv-border);
 }
