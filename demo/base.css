@@ -92,6 +92,25 @@ body {
   min-width: 0;
 }
 
+#threads-view {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#app.threads-active #main-view {
+  display: none;
+}
+
+#app.threads-active #threads-view {
+  display: flex;
+}
+
+#app.settings-active #threads-view {
+  display: none;
+}
+
 /* Render mode indicator */
 #render-bar {
   position: fixed;

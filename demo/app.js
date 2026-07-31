@@ -262,7 +262,7 @@ function newChat() {
 function showChat() {
   document.getElementById('chat-view').classList.add('active');
   document.getElementById('agents-view').classList.remove('active');
-  document.getElementById('threads-view').classList.remove('active');
+  appEl.classList.remove('threads-active');
   selectedAgentId = null;
   threadsBtn.classList.remove('active');
   rightSidebar.refresh();
@@ -271,28 +271,26 @@ function showChat() {
 function showAgents() {
   document.getElementById('agents-view').classList.add('active');
   document.getElementById('chat-view').classList.remove('active');
-  document.getElementById('threads-view').classList.remove('active');
+  appEl.classList.remove('threads-active');
   selectedAgentId = null;
   threadsBtn.classList.remove('active');
   rightSidebar.close();
 }
 
 function toggleThreads() {
-  const threadsActive = document.getElementById('threads-view').classList.contains('active');
-  if (threadsActive) {
+  if (appEl.classList.contains('threads-active')) {
     showChat();
-    threadsBtn.classList.remove('active');
   } else {
     showThreads();
-    threadsBtn.classList.add('active');
   }
 }
 
 function showThreads() {
-  document.getElementById('threads-view').classList.add('active');
   document.getElementById('chat-view').classList.remove('active');
   document.getElementById('agents-view').classList.remove('active');
+  appEl.classList.add('threads-active');
   selectedAgentId = null;
+  threadsBtn.classList.add('active');
   rightSidebar.close();
 }
 
