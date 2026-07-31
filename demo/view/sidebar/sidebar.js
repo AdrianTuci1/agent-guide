@@ -6,13 +6,12 @@ window.Sidebar = class Sidebar {
     this.onSelect = onSelect;
     this.onNewChat = onNewChat;
     this.onOpenAgents = onOpenAgents;
-    this.activeId = null;
-    this.running = false;
+    this.selectedId = null;
     this.render();
   }
 
-  setRunning(running) {
-    this.running = running;
+  setSelected(id) {
+    this.selectedId = id;
   }
 
   render() {
@@ -24,9 +23,9 @@ window.Sidebar = class Sidebar {
           <h3>Active</h3>
           <div class="active-list conversation-list"></div>
         </div>
-        <div class="sidebar-section inactive-section">
-          <h3>Inactive</h3>
-          <div class="inactive-list conversation-list"></div>
+        <div class="sidebar-section past-section">
+          <h3>Past</h3>
+          <div class="past-list conversation-list"></div>
         </div>
       </div>
       <div class="sidebar-collapsed-content">
@@ -45,7 +44,7 @@ window.Sidebar = class Sidebar {
 
   renderLists() {
     this.renderList(this.activeConversations, this.el.querySelector('.active-list'));
-    this.renderList(this.pastConversations, this.el.querySelector('.inactive-list'));
+    this.renderList(this.pastConversations, this.el.querySelector('.past-list'));
   }
 
   refresh() {
@@ -63,7 +62,7 @@ window.Sidebar = class Sidebar {
     }
     conversations.forEach(conv => {
       const item = document.createElement('div');
-      item.className = 'conversation-item' + (conv.id === this.activeId ? ' active' : '') + (conv.id === this.activeId && this.running ? ' running' : '');
+      item.className = 'conversation-item' + (conv.id === this.selectedId ? ' selected' : '');
       item.textContent = conv.title;
       item.dataset.id = conv.id;
       item.addEventListener('click', () => this.select(conv.id));
@@ -72,9 +71,9 @@ window.Sidebar = class Sidebar {
   }
 
   select(id) {
-    this.activeId = id;
+    this.selectedId = id;
     this.el.querySelectorAll('.conversation-item').forEach(item => {
-      item.classList.toggle('active', item.dataset.id === id);
+      item.classList.toggle('selected', item.dataset.id === id);
     });
     this.onSelect?.(id);
   }

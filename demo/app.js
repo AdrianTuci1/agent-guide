@@ -16,12 +16,19 @@ const conversations = [
 ];
 
 const chatWindow = new window.ChatWindow(document.getElementById('chat-view'));
-chatWindow.chat.onRunningChange = (running) => {
-  sidebar.setRunning(running);
-  sidebar.refresh();
-};
 
+let selectedConversationId = null;
 let selectedAgentId = null;
+let switchingConversation = false;
+
+chatWindow.chat.onComposerModeChange = (mode) => {
+  if (switchingConversation || !selectedConversationId) return;
+  if (mode === 'inline') {
+    ensureActive(selectedConversationId);
+  } else {
+    ensurePast(selectedConversationId);
+  }
+};
 
 const rightSidebar = new window.RightSidebar(
   document.getElementById('right-sidebar'),
@@ -88,7 +95,6 @@ const threadsView = new window.ThreadsView(
 
 let activeConversations = [];
 let pastConversations = [...conversations];
-let currentConversationId = null;
 
 let ws = null;
 let wsReady = false;
@@ -224,45 +230,52 @@ function archiveExecution() {
   });
 }
 
-function moveToActive(id) {
-  if (currentConversationId === id) return;
-  if (currentConversationId) {
-    moveToPast(currentConversationId);
-  }
+function ensureActive(id) {
+  if (activeConversations.find(c => c.id === id)) return;
   const pastIndex = pastConversations.findIndex(c => c.id === id);
   if (pastIndex !== -1) {
     activeConversations.push(pastConversations[pastIndex]);
     pastConversations.splice(pastIndex, 1);
-  }
-  if (!activeConversations.find(c => c.id === id)) {
+  } else {
     const conv = conversations.find(c => c.id === id);
     if (conv) activeConversations.push(conv);
   }
-  currentConversationId = id;
-  sidebar.activeId = id;
   sidebar.refresh();
 }
 
-function moveToPast(id) {
+function ensurePast(id) {
   const activeIndex = activeConversations.findIndex(c => c.id === id);
   if (activeIndex !== -1) {
+    pastConversations.push(activeConversations[activeIndex]);
     activeConversations.splice(activeIndex, 1);
   }
-  if (!pastConversations.find(c => c.id === id)) {
-    const conv = conversations.find(c => c.id === id);
-    if (conv) pastConversations.push(conv);
-  }
-  if (currentConversationId === id) {
-    currentConversationId = null;
-  }
   sidebar.refresh();
+}
+
+function setSelected(id) {
+  selectedConversationId = id;
+  sidebar.setSelected(id);
+  sidebar.refresh();
+}
+
+function isWaiting() {
+  return chatWindow.chat.composerMode === 'inline';
 }
 
 function loadFlow(id) {
   archiveExecution();
-  moveToActive(id);
+  if (selectedConversationId) {
+    if (isWaiting()) {
+      ensureActive(selectedConversationId);
+    } else {
+      ensurePast(selectedConversationId);
+    }
+  }
+  switchingConversation = true;
+  setSelected(id);
   showChat();
   chatWindow.clear();
+  switchingConversation = false;
   chatWindow.setEmpty(false);
   selectedAgentId = null;
   const title = conversations.find(c => c.id === id)?.title || id;
@@ -278,10 +291,18 @@ function loadFlow(id) {
 
 function newChat() {
   archiveExecution();
-  if (currentConversationId) {
-    moveToPast(currentConversationId);
+  if (selectedConversationId) {
+    if (isWaiting()) {
+      ensureActive(selectedConversationId);
+    } else {
+      ensurePast(selectedConversationId);
+    }
   }
+  switchingConversation = true;
+  selectedConversationId = null;
+  sidebar.setSelected(null);
   chatWindow.clear();
+  switchingConversation = false;
   chatWindow.setEmpty(true);
   chatWindow.composer.setDefault(msg => sendToBackend(msg));
   selectedAgentId = null;

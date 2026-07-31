@@ -5,7 +5,7 @@ window.Chat = class Chat {
     this.runningBarEl = runningBarEl;
     this.renderBarEl = renderBarEl;
     this.renderLabelEl = renderLabelEl;
-    this.onRunningChange = null;
+    this.onComposerModeChange = null;
     this.autoApprove = false;
     this.renderMode = null;
     this.composerMode = 'default';
@@ -171,7 +171,6 @@ window.Chat = class Chat {
       this.renderBarEl.classList.remove('active');
     }
     this._updateRunningBar();
-    this.onRunningChange?.(!!this.renderMode);
   }
 
   _renderModeLabel(mode) {
@@ -197,6 +196,7 @@ This is the full execution context captured at this timestamp for observability.
   setComposerMode(mode) {
     this.composerMode = mode;
     this._updateRunningBar();
+    this.onComposerModeChange?.(mode);
   }
 
   _updateRunningBar() {
