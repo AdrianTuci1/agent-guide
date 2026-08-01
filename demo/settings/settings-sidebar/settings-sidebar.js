@@ -8,30 +8,31 @@ window.SettingsSidebar = class SettingsSidebar {
       {
         title: 'Personal',
         items: [
-          { id: 'profile', label: 'Profile', icon: '👤' },
-          { id: 'appearance', label: 'Appearance', icon: '🎨' },
-          { id: 'notifications', label: 'Notifications', icon: '🔔' },
-          { id: 'shortcuts', label: 'Shortcuts', icon: '⌨️' },
-          { id: 'custom-emoji', label: 'Custom emoji', icon: '🙂' },
-          { id: 'local-archive', label: 'Local archive', icon: '🗄️' }
+          { id: 'profile', label: 'Profile', icon: 'user' },
+          { id: 'keys', label: 'Keys', icon: 'key' },
+          { id: 'appearance', label: 'Appearance', icon: 'monitor' },
+          { id: 'notifications', label: 'Notifications', icon: 'bell' },
+          { id: 'shortcuts', label: 'Shortcuts', icon: 'keyboard' },
+          { id: 'local-archive', label: 'Local archive', icon: 'archive' }
         ]
       },
       {
         title: 'Communities',
         items: [
-          { id: 'hosted-communities', label: 'Hosted communities', icon: '🌐' },
-          { id: 'templates', label: 'Templates', icon: '📄' },
-          { id: 'invites', label: 'Invites', icon: '✉️' }
+          { id: 'members', label: 'Members', icon: 'users' },
+          { id: 'hosted-communities', label: 'Hosted communities', icon: 'globe' },
+          { id: 'templates', label: 'Templates', icon: 'file' },
+          { id: 'invites', label: 'Invites', icon: 'mail' }
         ]
       },
       {
         title: 'App',
         items: [
-          { id: 'settings-agents', label: 'Agents', icon: '🤖' },
-          { id: 'compute', label: 'Compute', icon: '⚙️' },
-          { id: 'experiments', label: 'Experiments', icon: '🧪' },
-          { id: 'mobile', label: 'Mobile', icon: '📱' },
-          { id: 'updates', label: 'Updates', icon: '⬇️' }
+          { id: 'settings-agents', label: 'Agents', icon: 'robot' },
+          { id: 'compute', label: 'Compute', icon: 'server' },
+          { id: 'experiments', label: 'Experiments', icon: 'flask' },
+          { id: 'mobile', label: 'Mobile', icon: 'phone' },
+          { id: 'updates', label: 'Updates', icon: 'download' }
         ]
       }
     ];
@@ -46,7 +47,7 @@ window.SettingsSidebar = class SettingsSidebar {
 
   render() {
     this.el.innerHTML = `
-      <button class="settings-back">← Back</button>
+      <button class="settings-back"><span class="settings-back-icon">${window.settingsIcons.arrowLeft}</span> Back</button>
       <div class="settings-menu">
         ${this.groups.map(g => this._renderGroup(g)).join('')}
       </div>
@@ -63,7 +64,7 @@ window.SettingsSidebar = class SettingsSidebar {
         <h4 class="settings-menu-title">${this._escapeHtml(group.title)}</h4>
         ${group.items.map(item => `
           <div class="settings-menu-item ${item.id === this.selectedId ? 'selected' : ''}" data-id="${item.id}">
-            <span class="settings-menu-icon">${item.icon}</span>
+            <span class="settings-menu-icon">${window.settingsIcons[item.icon] || ''}</span>
             <span class="settings-menu-label">${this._escapeHtml(item.label)}</span>
           </div>
         `).join('')}

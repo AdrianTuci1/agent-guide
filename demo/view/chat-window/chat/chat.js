@@ -76,7 +76,7 @@ window.Chat = class Chat {
 
   addCodeChangeCard(description, files) {
     const card = document.createElement('div');
-    card.className = 'code-change-card composer-card';
+    card.className = 'code-change-card composer-card collapsed';
 
     const topbar = document.createElement('div');
     topbar.className = 'code-change-topbar composer-topbar';
@@ -136,6 +136,7 @@ window.Chat = class Chat {
       const collapsed = body.style.display === 'none';
       body.style.display = collapsed ? 'block' : 'none';
       toggle.textContent = collapsed ? '▲' : '▼';
+      card.classList.toggle('collapsed', !collapsed);
     };
 
     toggle.addEventListener('click', (e) => {

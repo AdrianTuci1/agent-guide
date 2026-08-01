@@ -53,7 +53,7 @@ const threadsData = {
         { id: 'demo', name: 'Demo Channel', private: false, unread: 2, total: 6 },
         { id: 'devdigest', name: 'DevDigest', private: false, unread: 0 },
         { id: 'general', name: 'general', private: false, unread: 0 },
-        { id: 'welcome', name: 'Welcome', private: true, unread: 0 },
+        { id: 'welcome', name: 'Welcome', private: true, unread: 0, members: ['adrian'] },
         { id: 'welcome-everyone', name: 'welcome-everyone', private: false, unread: 0 }
       ],
       directMessages: [
@@ -70,7 +70,7 @@ const threadsData = {
               name: 'Engineering',
               channels: [
                 { id: 'website-frontend', name: 'frontend', private: false, unread: 0 },
-                { id: 'website-backend', name: 'backend', private: true, unread: 0 },
+                { id: 'website-backend', name: 'backend', private: true, unread: 0, members: ['adrian'] },
                 { id: 'website-flight', name: 'flight-path', private: false, unread: 0 },
                 { id: 'website-releases', name: 'releases', private: false, unread: 0 },
                 { id: 'website-code-review', name: 'code-review', private: false, unread: 0 }
@@ -157,7 +157,9 @@ Tiny rule of thumb: cursor moves once, transition breathes once, sent state land
           { id: 301, text: 'Hi @You, can we sync today?', author: 'Maya Chen', time: '09:00', reactions: [] }
         ]
       },
-      tags: ['#bug', '#feature', '#question', '#release']
+      tags: ['#bug', '#feature', '#question', '#release'],
+      authorizedKeys: [],
+      pendingInvites: []
     },
     {
       id: 'personal',
@@ -172,7 +174,9 @@ Tiny rule of thumb: cursor moves once, transition breathes once, sent state land
         'personal-general': []
       },
       directMessagesById: {},
-      tags: ['#bug', '#feature', '#question', '#release']
+      tags: ['#bug', '#feature', '#question', '#release'],
+      authorizedKeys: [],
+      pendingInvites: []
     },
     {
       id: 'clients',
@@ -180,7 +184,7 @@ Tiny rule of thumb: cursor moves once, transition breathes once, sent state land
       color: '#f97316',
       channels: [
         { id: 'client-a', name: 'Client A', private: false, unread: 0 },
-        { id: 'client-b', name: 'Client B', private: true, unread: 0 }
+        { id: 'client-b', name: 'Client B', private: true, unread: 0, members: ['adrian'] }
       ],
       directMessages: [],
       projects: [],
@@ -189,25 +193,117 @@ Tiny rule of thumb: cursor moves once, transition breathes once, sent state land
         'client-b': []
       },
       directMessagesById: {},
-      tags: ['#bug', '#feature', '#question', '#release']
+      tags: ['#bug', '#feature', '#question', '#release'],
+      authorizedKeys: [],
+      pendingInvites: []
     }
   ]
 };
-const threadsView = new window.ThreadsView(
-  document.getElementById('threads-view'),
-  threadsData,
-  { onAgents: () => showAgents() }
-);
+async function initCurrentUser() {
+  const user = {
+    id: 'adrian',
+    name: 'Adrian Tucicovenco',
+    keys: {}
+  };
+  for (const ws of threadsData.workspaces) {
+    ws.authorizedKeys = ws.authorizedKeys || [];
+    ws.pendingInvites = ws.pendingInvites || [];
+    if (ws.authorizedKeys.find(m => m.userId === user.id)) continue;
+    const keyPair = await window.IdentityManager.generateUserKeyPair();
+    const publicKeyPem = await window.IdentityManager.exportPublicKeyPem(keyPair);
+    const privateKeyPem = await window.IdentityManager.exportPrivateKeyPem(keyPair);
+    user.keys[ws.id] = { keyPair, publicKeyPem, privateKeyPem };
+    const privateChannels = [];
+    const addChannel = c => {
+      if (c.private) {
+        c.members = c.members || [];
+        if (!c.members.includes(user.id)) c.members.push(user.id);
+        privateChannels.push(c.id);
+      }
+    };
+    (ws.channels || []).forEach(addChannel);
+    (ws.projects || []).forEach(p => (p.groups || []).forEach(g => (g.channels || []).forEach(addChannel)));
+    ws.authorizedKeys.push({
+      userId: user.id,
+      name: user.name,
+      publicKeyPem,
+      role: 'owner',
+      joinedAt: new Date().toISOString(),
+      invitedBy: 'system',
+      privateChannels
+    });
+  }
+  return user;
+}
+
+let currentUser = null;
+let threadsView = null;
+let settingsContent = null;
+let sidebar = null;
 
 let activeConversations = [];
 let pastConversations = [...conversations];
-
 let ws = null;
 let wsReady = false;
-
 const executions = [];
 let currentExecutionTitle = 'New chat';
 let historyDetailId = null;
+
+const appEl = document.getElementById('app');
+const threadsBtn = document.querySelector('.threads-btn');
+
+async function initApp() {
+  currentUser = await initCurrentUser();
+  window.currentUser = currentUser;
+
+  threadsView = new window.ThreadsView(
+    document.getElementById('threads-view'),
+    threadsData,
+    { onAgents: () => showAgents() }
+  );
+
+  sidebar = new window.Sidebar(
+    document.getElementById('sidebar'),
+    activeConversations,
+    pastConversations,
+    id => loadFlow(id),
+    () => { showChat(); newChat(); },
+    () => showAgents()
+  );
+
+  const settingsSidebar = new window.SettingsSidebar(
+    document.getElementById('settings-sidebar'),
+    () => {
+      appEl.classList.remove('settings-active');
+    },
+    id => settingsContent.setSelected(id)
+  );
+  settingsContent = new window.SettingsContent(document.getElementById('settings-content'), threadsData, currentUser);
+
+  document.querySelector('.sidebar-toggle').addEventListener('click', () => {
+    appEl.classList.toggle('sidebar-collapsed');
+  });
+
+  document.querySelector('.settings-btn').addEventListener('click', () => {
+    appEl.classList.add('settings-active');
+  });
+
+  threadsBtn.addEventListener('click', () => toggleThreads());
+
+  document.addEventListener('rightsidebartoggle', () => rightSidebar.toggle());
+
+  connectBackend();
+  newChat();
+  window.__debugChatWindow = chatWindow;
+  window.__debugThreadsView = threadsView;
+  window.refreshWorkspaceView = () => {
+    if (threadsView) {
+      threadsView.useWorkspace(threadsView.currentWorkspaceId);
+      threadsView.render();
+    }
+  };
+  applyDesignSystem(getDefaultDesign());
+}
 
 function connectBackend() {
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -292,39 +388,6 @@ function handleServerEvent(data) {
       break;
   }
 }
-
-const sidebar = new window.Sidebar(
-  document.getElementById('sidebar'),
-  activeConversations,
-  pastConversations,
-  id => loadFlow(id),
-  () => { showChat(); newChat(); },
-  () => showAgents()
-);
-
-const settingsSidebar = new window.SettingsSidebar(
-  document.getElementById('settings-sidebar'),
-  () => {
-    appEl.classList.remove('settings-active');
-  },
-  id => settingsContent.setSelected(id)
-);
-const settingsContent = new window.SettingsContent(document.getElementById('settings-content'));
-
-const appEl = document.getElementById('app');
-const threadsBtn = document.querySelector('.threads-btn');
-
-document.querySelector('.sidebar-toggle').addEventListener('click', () => {
-  appEl.classList.toggle('sidebar-collapsed');
-});
-
-document.querySelector('.settings-btn').addEventListener('click', () => {
-  appEl.classList.add('settings-active');
-});
-
-document.querySelector('.threads-btn').addEventListener('click', () => toggleThreads());
-
-document.addEventListener('rightsidebartoggle', () => rightSidebar.toggle());
 
 function archiveExecution() {
   const history = chatWindow.chat.getHistory();
@@ -531,6 +594,6 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;');
 }
 
-connectBackend();
-newChat();
-window.__debugChatWindow = chatWindow;
+initApp().catch(err => {
+  console.error('Failed to initialize app:', err);
+});

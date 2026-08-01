@@ -145,7 +145,8 @@ window.ThreadsSidebar = class ThreadsSidebar {
 
   _channelItem(c) {
     const selected = this.selectedItem.type === 'channel' && this.selectedItem.id === c.id;
-    const icon = c.private ? '🔒' : '#';
+    const lockIcon = window.settingsIcons?.lock || '🔒';
+    const icon = c.private ? `<span class="channel-lock">${lockIcon}</span>` : '#';
     const badge = c.unread ? `<span class="unread-badge">${c.unread}${c.total ? '/' + c.total : ''}</span>` : '';
     return `
       <div class="channel-item ${selected ? 'selected' : ''}" data-type="channel" data-id="${c.id}">
@@ -244,13 +245,22 @@ window.ThreadsView = class ThreadsView {
     const ws = this.workspaces.find(w => w.id === id);
     this.activeWorkspace = ws;
     if (!ws) return;
-    this.channels = ws.channels || [];
+    this.channels = (ws.channels || []).filter(c => this._canAccessChannel(c));
     this.directMessages = ws.directMessages || [];
     this.projects = ws.projects || [];
     this.messagesByChannel = ws.messagesByChannel || {};
     this.directMessagesById = ws.directMessagesById || {};
     this.tags = ws.tags || ['#bug', '#feature', '#question', '#release'];
     this.reactionEmojis = ['👀', '💬', '🎉', '👍', '🔥'];
+  }
+
+  _canAccessChannel(channel) {
+    if (!channel.private) return true;
+    const currentUser = window.currentUser;
+    if (currentUser && window.IdentityManager) {
+      return window.IdentityManager.canAccessChannel(this.activeWorkspace, channel, currentUser.id);
+    }
+    return true;
   }
 
   render() {
@@ -399,7 +409,8 @@ window.ThreadsView = class ThreadsView {
     if (this.currentView === 'inbox') return '📥';
     if (this.currentView === 'channel') {
       const channel = this.findChannel(this.currentChannelId);
-      return channel?.private ? '🔒' : '#';
+      const lockIcon = window.settingsIcons?.lock || '🔒';
+      return channel?.private ? `<span class="header-lock">${lockIcon}</span>` : '#';
     }
     if (this.currentView === 'directMessage') {
       const dm = this.directMessages.find(d => d.id === this.currentDirectMessageId);

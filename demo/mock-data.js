@@ -70,7 +70,7 @@ const auth = new AuthService(tokenStore);`
 
       chat.addRichMessage(`<p>I generated <code>src/auth-service.js</code> and updated the callers in <code>login.js</code> and <code>session.js</code>. Ready to run tests?</p>`);
 
-      chat.showConfirmation('Run tests before applying changes?', 'Run tests before applying changes?', ['Run tests', 'Edit plan', 'Cancel'], async (action) => {
+      chat.showConfirmation('Run tests before applying changes?', 'Run the test suite to validate the generated changes before applying them.', ['Run tests', 'Edit plan', 'Cancel'], async (action) => {
         chat.addMessage(action, 'user');
         if (action === 'Run tests') {
           chat.setRenderMode('running');

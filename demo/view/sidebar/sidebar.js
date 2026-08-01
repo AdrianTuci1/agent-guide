@@ -15,10 +15,21 @@ window.Sidebar = class Sidebar {
   }
 
   render() {
+    const newChatIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+    const agentsIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"></rect><circle cx="9" cy="10" r="2" fill="currentColor" stroke="none"></circle><circle cx="15" cy="10" r="2" fill="currentColor" stroke="none"></circle><path d="M9 15h6"></path></svg>`;
     this.el.innerHTML = `
       <div class="sidebar-expanded-content">
-        <button class="new-chat-btn">+ New chat</button>
-        <button class="agents-btn">🤖 Agents</button>
+        <div class="sidebar-header">
+          <div class="sidebar-brand">Agent Guide</div>
+        </div>
+        <button class="new-chat-btn">
+          <span class="btn-icon">${newChatIcon}</span>
+          <span>New chat</span>
+        </button>
+        <button class="agents-btn">
+          <span class="btn-icon">${agentsIcon}</span>
+          <span>Agents</span>
+        </button>
         <div class="sidebar-section active-section">
           <h3>Active</h3>
           <div class="active-list conversation-list"></div>
@@ -29,8 +40,8 @@ window.Sidebar = class Sidebar {
         </div>
       </div>
       <div class="sidebar-collapsed-content">
-        <button class="collapsed-btn new-chat-collapsed" title="New chat">+</button>
-        <button class="collapsed-btn agents-collapsed" title="Agents">🤖</button>
+        <button class="collapsed-btn new-chat-collapsed" title="New chat">${newChatIcon}</button>
+        <button class="collapsed-btn agents-collapsed" title="Agents">${agentsIcon}</button>
       </div>
     `;
 

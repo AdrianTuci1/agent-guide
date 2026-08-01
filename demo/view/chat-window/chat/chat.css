@@ -183,6 +183,26 @@
   margin: 4px 0 4px 8px;
 }
 
+.code-change-card.collapsed .composer-topbar {
+  margin-bottom: 0;
+}
+
+.code-change-card.collapsed .code-change-icon {
+  display: none;
+}
+
+.code-change-card.collapsed .code-change-title h4 {
+  color: #c9d1d9;
+}
+
+.code-change-card .composer-topbar {
+  cursor: pointer;
+}
+
+.code-change-card:not(.collapsed) .composer-topbar {
+  margin-bottom: 12px;
+}
+
 .code-change-title {
   display: flex;
   align-items: center;

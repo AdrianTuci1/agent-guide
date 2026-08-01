@@ -9,16 +9,68 @@ html, body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #0f1115;
-  color: #e4e6eb;
+  font-family: var(--ds-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  background: var(--ds-bg, #0f1115);
+  color: var(--ds-text, #e4e6eb);
   font-size: 14px;
 }
+
+/* Design system tokens */
+#app {
+  --ds-bg: #0f1115;
+  --ds-surface: #181b21;
+  --ds-surface-raised: #21252e;
+  --ds-border: #2a2e36;
+  --ds-text: #e4e6eb;
+  --ds-muted: #8b949e;
+  --ds-accent: #2563eb;
+  --ds-hover: #21252e;
+  --ds-selected: #2a2e36;
+  --ds-radius: 8px;
+  --ds-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --ds-density: 1;
+}
+
+#app.theme-light {
+  --ds-bg: #f6f7f9;
+  --ds-surface: #ffffff;
+  --ds-surface-raised: #f3f4f6;
+  --ds-border: #e2e4e9;
+  --ds-text: #1f2937;
+  --ds-muted: #6b7280;
+  --ds-hover: #f3f4f6;
+  --ds-selected: #e5e7eb;
+}
+
+#app.theme-midnight {
+  --ds-bg: #0a0c10;
+  --ds-surface: #11131a;
+  --ds-surface-raised: #181b23;
+  --ds-border: #1f222b;
+  --ds-text: #e8eaed;
+  --ds-muted: #6b7280;
+  --ds-hover: #181b23;
+  --ds-selected: #1e212b;
+}
+
+#app.font-system { --ds-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+#app.font-mono { --ds-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+#app.font-serif { --ds-font: Georgia, Cambria, "Times New Roman", Times, serif; }
+
+#app.density-compact { --ds-density: 0.85; }
+#app.density-default { --ds-density: 1; }
+#app.density-spacious { --ds-density: 1.15; }
+
+#app.radius-sharp { --ds-radius: 0px; }
+#app.radius-default { --ds-radius: 8px; }
+#app.radius-rounded { --ds-radius: 14px; }
 
 #app {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: var(--ds-bg);
+  color: var(--ds-text);
 }
 
 #topbar {
@@ -28,17 +80,17 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  background: #181b21;
-  border-bottom: 1px solid #2a2e36;
+  background: var(--ds-surface);
+  border-bottom: 1px solid var(--ds-border);
 }
 
 .topbar-btn {
-  background: #21252e;
-  border: 1px solid #2a2e36;
-  color: #e4e6eb;
+  background: var(--ds-surface-raised);
+  border: 1px solid var(--ds-border);
+  color: var(--ds-text);
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -48,7 +100,7 @@ body {
 }
 
 .topbar-btn:hover {
-  background: #2a2e36;
+  background: var(--ds-hover);
 }
 
 .topbar-left,
@@ -81,15 +133,16 @@ body {
 
 #sidebar {
   width: 260px;
-  border-right: 1px solid #2a2e36;
+  border-right: 1px solid var(--ds-border);
+  background: var(--ds-surface);
   flex-shrink: 0;
   overflow: hidden;
   transition: width 0.2s;
 }
 
 #app.sidebar-collapsed #sidebar {
-  width: 0;
-  border-right: none;
+  width: 56px;
+  border-right: 1px solid var(--ds-border);
 }
 
 #main {
@@ -97,6 +150,7 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  background: var(--ds-bg);
 }
 
 #threads-view {
@@ -127,9 +181,9 @@ body {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: #1e222b;
-  border: 1px solid #2a2e36;
-  border-radius: 6px;
+  background: var(--ds-surface-raised);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius);
   font-size: 12px;
   opacity: 0;
   transition: opacity 0.2s;
@@ -142,7 +196,7 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #8b949e;
+  background: var(--ds-accent);
   animation: pulse 1.4s infinite;
 }
 
@@ -153,11 +207,11 @@ body {
 
 /* Global button */
 .btn {
-  background: #2563eb;
+  background: var(--ds-accent);
   color: #fff;
   border: none;
   padding: 8px 14px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius);
   cursor: pointer;
   font-size: 13px;
   line-height: 1;
@@ -166,6 +220,6 @@ body {
 .btn:hover { opacity: 0.9; }
 
 .btn.secondary {
-  background: #21252e;
-  border: 1px solid #2a2e36;
+  background: var(--ds-surface-raised);
+  border: 1px solid var(--ds-border);
 }
